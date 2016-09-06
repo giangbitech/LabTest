@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiTech.LabTest", "BiTech.LabTest\BiTech.LabTest.csproj", "{5A53F397-9975-4B8B-8FE4-883D635BC14D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiTech.LabTest.Tests", "BiTech.LabTest.Tests\BiTech.LabTest.Tests.csproj", "{50A416CB-F644-4BF7-AD01-182006A7651C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5A53F397-9975-4B8B-8FE4-883D635BC14D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A53F397-9975-4B8B-8FE4-883D635BC14D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A53F397-9975-4B8B-8FE4-883D635BC14D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A53F397-9975-4B8B-8FE4-883D635BC14D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50A416CB-F644-4BF7-AD01-182006A7651C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50A416CB-F644-4BF7-AD01-182006A7651C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50A416CB-F644-4BF7-AD01-182006A7651C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50A416CB-F644-4BF7-AD01-182006A7651C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
