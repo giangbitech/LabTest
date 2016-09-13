@@ -3,8 +3,32 @@
 
 
 }
+<script>
+    
+    window.onload = function () {
+        $("#PrepareForm").submit();
+    }
+</script>
 <div class="panel panel-default">
     <div class="panel-body">
-
+        @ViewBag.TestDataID
+        
+        
+        <div id="MessageBox" class="alert-danger panel-danger uploader-message-box"></div>
     </div>
 </div>
+
+
+@using (Ajax.BeginForm("PrepareTest", "Student", null, new AjaxOptions { OnSuccess = "ThanhCong" }, new { id = "PrepareForm" }))
+{
+    <input type="hidden" name="TestDataId" value="@ViewBag.TestDataID" />
+}
+
+<script>
+    function ThanhCong(response) {
+
+        //var msgBox = document.getElementById('MessageBox');
+        $("#MessageBox").html(response.ddd);
+        //msgBox.innerHTML = '<div class="inner-container">@Html.Raw(LanguageConfig.Dictionary["Teacher_Upload_Error_2"])</div>';
+    }
+</script>

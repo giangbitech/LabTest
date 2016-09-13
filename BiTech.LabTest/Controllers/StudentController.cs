@@ -80,20 +80,31 @@ namespace BiTech.LabTest.Controllers
         public ActionResult SubmitDoTest(string testDataId)
         {
             Session["IsTestStarted"] = true;
-
+            Session["TestDataId"] = testDataId;
 
             return Json(new { testDataId = testDataId });
         }
      
-        public ActionResult DoTest(string testDataId)
+        public ActionResult DoTest()
         {
-            Session["IsTestStarted"] = true;
-            string data = _StudentLogic.GetTest(testDataId);
+            if(Session["TestDataId"] == null)
+            {
+                return RedirectToAction("JoinTest");
+            }
+            string testDataId = Session["TestDataId"].ToString();
 
+            ViewBag.TestDataID = testDataId;
+            //string dethiodangjson = "";
+            //ViewBag.Data = Json(new { group = "gg", ddd = "dd" });
+            
+            return View();//Json(dethiodangjson);
+        }
 
-            string dethiodangjson = "";
+        [HttpPost]
+        public ActionResult PrepareTest(string testDataId)
+        {
 
-            return Json(dethiodangjson);
+            return Json(new { group = "gg", ddd = "dd" });
         }
 
 
