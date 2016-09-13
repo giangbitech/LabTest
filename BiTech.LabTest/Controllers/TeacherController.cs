@@ -23,7 +23,7 @@ namespace BiTech.LabTest.Controllers
 
 
         public TeacherController()
-        {
+        {dsada
             // Xác định quyền của người dùng trong controller này
             ViewBag.ApplicationRole = Models.Enums.ApplicationRole.Teacher;
             TeacherLogic = new TeacherLogic();
