@@ -23,7 +23,7 @@ namespace BiTech.LabTest.Controllers
 
 
         public TeacherController()
-        {dasdasdasd
+        {
             // Xác định quyền của người dùng trong controller này
             ViewBag.ApplicationRole = Models.Enums.ApplicationRole.Teacher;
             TeacherLogic = new TeacherLogic();
@@ -147,8 +147,8 @@ namespace BiTech.LabTest.Controllers
                     {
                         TestData = testDataInString,
                         TestStep = TestData.TestStepEnum.Waiting,
-                        Subject  = testDataInJson["Test"]["Header"]["Subject"].ToString(),
-                        Grade    = testDataInJson["Test"]["Header"]["Grade"].ToString()
+                        Subject  = "",
+                        Grade    = ""
                     };
 
                     // Lấy danh sách các nhóm câu hỏi
@@ -156,19 +156,6 @@ namespace BiTech.LabTest.Controllers
 
                     foreach (var item in groups)
                     {
-                        var currentItem = JObject.Parse(item.Value.ToString());
-
-                        var questionGroup = new QuestionGroupInformation
-                        {
-                            Title          = currentItem["GroupInfo"]["Title"].ToString(),
-                            TotalQuiz      = (currentItem["Quiz"]?["Quiz_Q_Single"]?["Quiz_S_Question"]?.Count() ?? 0) + (currentItem["Quiz"]?["Quiz_Q_Group"]?["Quiz_QG_Question"]?.Count() ?? 0),
-                            TotalUnderline = (currentItem["Underline"]?["Underline_Q_Single"]?["Underline_S_Question"]?.Count() ?? 0) + (currentItem["Underline"]?["Underline_Q_Group"]?["Underline_QG_Question"]?.Count() ?? 0),
-                            TotalFill      = (currentItem["Fill"]?["Fill_Q_Single"]?["Fill_S_Question"]?.Count() ?? 0) + (currentItem["Fill"]?["Fill_Q_Group"]?["Fill_QG_Question"]?.Count() ?? 0),
-                            TotalTrueFalse = (currentItem["TrueFalse"]?["TrueFalse_Q_Single"]?["TrueFalse_S_Question"]?.Count() ?? 0) + (currentItem["TrueFalse"]?["TrueFalse_Q_Group"]?["TrueFalse_QG_Question"]?.Count() ?? 0),
-                            TotalMatching  = (currentItem["Matching"]?["Matching_Q_Single"]?["Matching_S_Question"]?.Count() ?? 0) + (currentItem["Matching"]?["Matching_Q_Group"]?["Matching_QG_Question"]?.Count() ?? 0)
-                        };
-
-                        testInformation.QuestionGroups.Add(questionGroup);
                     }
 
                     Session["TestInfomration"] = testInformation;
@@ -176,8 +163,8 @@ namespace BiTech.LabTest.Controllers
                     return Json(new
                     {
                         status  = "OK",
-                        subject = testDataInJson["Test"]["Header"]["Subject"].ToString(),
-                        grade   = testDataInJson["Test"]["Header"]["Grade"].ToString(),
+                        subject = testInformation.Subject.ToString(),
+                        grade   = testInformation.Grade.ToString(),
                     }, "text/plain");
                 }
             }

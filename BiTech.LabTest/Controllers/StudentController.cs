@@ -12,10 +12,9 @@ namespace BiTech.LabTest.Controllers
 {
     public class StudentController : Controller
     {
-        public StudentLogic TeacherLogic { get; set; }
+        public StudentLogic _StudentLogic { get; set; }
 
         public StudentTestStepEnum CurrentStudentTestStep { get; set; }
-
 
         public StudentController()
         {
@@ -48,9 +47,10 @@ namespace BiTech.LabTest.Controllers
         {
             if (ModelState.IsValid)
             {
-                Session["FullName"]              = viewModel.FullName;
-                Session["Class"]                 = viewModel.Class;
+                Session["FullName"] = viewModel.FullName;
+                Session["Class"] = viewModel.Class;
                 Session["IsCurrentTestFinished"] = false;
+                Session["IsTestStarted"] = false;
 
                 CurrentStudentTestStep = StudentTestStepEnum.WaitingTest;
                 return RedirectToAction("WaitingScreen");
@@ -62,19 +62,52 @@ namespace BiTech.LabTest.Controllers
         public ActionResult WaitingScreen()
         {
             // Chưa nhập thông tin thí sinh
-            if (Session["FullName"] == null || Session["Class"] == null)
+            if (Session["FullName"] == null || Session["Class"] == null || Session["IsTestStarted"] == null)
             {
                 return RedirectToAction("JoinTest");
             }
-
-            ViewBag.StudentName = "Nguyễn Trường Giang";
+            if (Session["FullName"].ToString().Length == 0 || Session["Class"].ToString().Length == 0)
+            {
+                return RedirectToAction("JoinTest");
+            }
+            ViewBag.StudentName = Session["FullName"].ToString();
             return View();
         }
 
-        public ActionResult DoTest()
+
+        [HttpPost]
+        [ActionName("DoTest")]
+        public ActionResult SubmitDoTest(string testDataId)
         {
-            CurrentStudentTestStep = StudentTestStepEnum.DoingTest;
-            return View();
+            Session["IsTestStarted"] = true;
+
+
+            return Json(new { testDataId = testDataId });
+        }
+     
+        public ActionResult DoTest(string testDataId)
+        {
+            Session["IsTestStarted"] = true;
+            string data = _StudentLogic.GetTest(testDataId);
+
+
+            string dethiodangjson = "";
+
+            return Json(dethiodangjson);
+        }
+
+
+
+        public ActionResult ChangeName()
+        {
+            if (!bool.Parse(Session["IsTestStarted"].ToString()))
+            {
+                Session["FullName"] = "";
+                Session["Class"] = "";
+                return RedirectToAction("JoinTest");
+
+            }
+            return RedirectToAction("WaitingScreen");
         }
     }
 }

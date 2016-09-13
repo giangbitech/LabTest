@@ -5,19 +5,58 @@
     <h3>Xin chào <span class="text-primary">@ViewBag.StudentName</span></h3>
     <h2>Vui lòng chờ giữ máy, chờ Giáo viên mở đề</h2>
 </center>
+<center>
+    <input value="@LanguageConfig.Dictionary["Student_Change_Name"]"
+           onclick="location.href='@Url.Action("ChangeName", "Student")'" class="btn btn-primary btn-lg">
+    <input id="btnTrigger" value="Do Test" class="btn btn-primary btn-lg">
+
+</center>
+
+
 
 @section scripts{
+    <script src="~/bower_components/Simple-Ajax-Uploader-master/SimpleAjaxUploader.min.js"></script>
     <script>
         // Declare a proxy to reference the hub.
         var chat = $.connection.testHub;
         // Create a function that the hub can call to broadcast messages.
         chat.client.announceStudentStartTest = function (testGuid) {
             alert("Giáo viên đã bật phòng thi" + testGuid);
+
         };
 
         // Start the connection.
         $.connection.hub.start().done(function () {
 
         });
+
+    </script>
+
+    <script>
+        // Declare a proxy to reference the hub.
+        var chat = $.connection.testHub;
+        // Create a function that the hub can call to broadcast messages.
+        chat.client.receiveTest = function (testDataId) {
+            //self.location.href("DoTest");
+           
+        };
+
+        // Start the connection.
+        $.connection.hub.start().done(function () { });
+
+        $("#btnTrigger").on('click', function () {
+            $("#DoTestForm").submit();
+        });
     </script>
 }
+
+@using (Ajax.BeginForm("DoTest", "Student", null, new AjaxOptions { OnSuccess="NhanDeThiThanhCong" }, new { id = "DoTestForm" }))
+{
+    <input type="hidden" name="TestDataId" value="dasdasdas" />
+}
+
+<script>
+    function NhanDeThiThanhCong(response) {
+        self.location = "@Url.Content("~/Student/DoTest")";
+    }
+</script>
