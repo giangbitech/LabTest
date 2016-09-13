@@ -16,6 +16,7 @@ namespace BiTech.LabTest
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+            LanguageConfig.RegisterLanguage();
         }
     }
 }

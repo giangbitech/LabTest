@@ -10,7 +10,15 @@ namespace BiTech.LabTest.Controllers
     {
         public ActionResult Index()
         {
-            return View();
+            var IsTeacher = true;
+            if (IsTeacher && Request.UserHostAddress == Request.ServerVariables["LOCAL_ADDR"])
+            {
+                return RedirectToAction("Index", "Teacher");
+            }
+            else
+            {
+                return RedirectToAction("Index", "Student");
+            }
         }
 
         public ActionResult About()

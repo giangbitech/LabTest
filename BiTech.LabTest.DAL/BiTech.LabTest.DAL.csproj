@@ -52,12 +52,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DatabaseConnection.cs" />
-    <Compile Include="Interfaces\IStudentEngineInterface.cs" />
-    <Compile Include="Interfaces\ITeacherEngineInterface.cs" />
+    <Compile Include="Database.cs" />
+    <Compile Include="IDatabase.cs" />
+    <Compile Include="Interfaces\IStudentEngine.cs" />
+    <Compile Include="Interfaces\ITeacherEngine.cs" />
+    <Compile Include="Models\IModel.cs" />
+    <Compile Include="Models\TestData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StudentEngine.cs" />
-    <Compile Include="TeacherEngine.cs" />
+    <Compile Include="Respository\EntityRepository.cs" />
+    <Compile Include="Respository\IEntityRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
