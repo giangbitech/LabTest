@@ -1,34 +1,69 @@
-﻿@{
-
-
-
-}
+﻿@model BiTech.LabTest.Models.ViewModels.Student.TestDataViewModel
 <script>
-    
-    window.onload = function () {
-        $("#PrepareForm").submit();
-    }
+
+
 </script>
 <div class="panel panel-default">
     <div class="panel-body">
-        @ViewBag.TestDataID
-        
-        
+        <div class="get-data-caption"><center><h2>@LanguageConfig.Dictionary["Student_Welcome"]</h2></center></div>
+        <div class="row">
+            <div class="col-md-3 col-md-offset-4 choose-source-body choose-source-container">
+                <div>
+                    <center>
+                        <table class="table table-striped table-bordered">
+                            <tr>
+                                <td colspan="2">Trường @Model.SchoolName</td>
+                                <td colspan="2">@Model.TestType</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">Năm học @Model.Year</td>
+                                <td colspan="2">@Model.Grade</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">Môn @Model.Subject</td>
+                                <td colspan="2">Thời gian thi @Model.TestTime phút</td>
+                            </tr>
+                        </table>
+                    </center>
+                </div>
+            </div>
+        </div>
         <div id="MessageBox" class="alert-danger panel-danger uploader-message-box"></div>
+        <div class="waiting-wrapper color-wrapper">
+            <div id="TestArea" class="row">
+                <div class="col-md-6 col-md-offset-2 choose-source-body">
+                    <div class="brower-filedata-container">
+                        <div>
+                            @Model.TestGroupList[0].Quiz.ListOfSingles.Count()
+                            @Model.TestGroupList[0].Quiz.ListOfGroups.Count()
+                            @Model.TestGroupList[0].Underline.ListOfSingles.Count()
+                            @Model.TestGroupList[0].Underline.ListOfGroups.Count()
+                            @Model.TestGroupList[0].Fill.ListOfSingles.Count()
+                            @Model.TestGroupList[0].Fill.ListOfGroups.Count()
+                            @Model.TestGroupList[0].TrueFalse.ListOfSingles.Count()
+                            @Model.TestGroupList[0].TrueFalse.ListOfGroups.Count()
+                            @Model.TestGroupList[0].Matching.ListOfSingles.Count()
+                            @Model.TestGroupList[0].Matching.ListOfGroups.Count()
+                            @*@foreach (var item in Model.Questions)
+                                {
+
+                                    <div>
+                                        Cau hoi:  @item.QuestionContent
+                                    </div>
+
+                                    if (item.QuestionType == BiTech.LabTest.Models.ViewModels.Student.QuestionTypeEnum.TrueFalse)
+                                    {
+                                        <div>@item.FirstAnswer</div>
+                                        <div></div>
+                                        <div></div>
+                                        <div></div>
+                                    }
+
+                                }*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-
-@using (Ajax.BeginForm("PrepareTest", "Student", null, new AjaxOptions { OnSuccess = "ThanhCong" }, new { id = "PrepareForm" }))
-{
-    <input type="hidden" name="TestDataId" value="@ViewBag.TestDataID" />
-}
-
-<script>
-    function ThanhCong(response) {
-
-        //var msgBox = document.getElementById('MessageBox');
-        $("#MessageBox").html(response.ddd);
-        //msgBox.innerHTML = '<div class="inner-container">@Html.Raw(LanguageConfig.Dictionary["Teacher_Upload_Error_2"])</div>';
-    }
-</script>

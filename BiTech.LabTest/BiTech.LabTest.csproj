@@ -160,6 +160,11 @@
     </Compile>
     <Compile Include="Models\Enums\ApplicationRole.cs" />
     <Compile Include="Models\Enums\StudentTestStepEnum.cs" />
+    <Compile Include="Models\ViewModels\Interface\IAnswerViewModel.cs" />
+    <Compile Include="Models\ViewModels\Interface\IGroupQuestionViewModel.cs" />
+    <Compile Include="Models\ViewModels\Interface\IQuestionOfType.cs" />
+    <Compile Include="Models\ViewModels\Interface\ISingleQuestionViewModel.cs" />
+    <Compile Include="Models\ViewModels\Interface\ITestGroupViewModel.cs" />
     <Compile Include="Models\ViewModels\Student.cs" />
     <Compile Include="Models\ViewModels\Teacher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -351,6 +356,7 @@
     <Content Include="language.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Content\data.json" />
     <None Include="Properties\PublishProfiles\BiTech.LabTest.pubxml" />
     <None Include="Properties\PublishProfiles\BiTech.pubxml" />
     <None Include="Scripts\jquery-1.10.2.intellisense.js" />

@@ -11,7 +11,7 @@ namespace BiTech.LabTest.BLL
 {
     public class StudentLogic
     {
-        public IEntityRepository<TestData> StudentRepository { get; set; }
+        public IEntityRepository<TestData> TestDataRepository { get; set; }
         public IDatabase Database { get; set; }
 
         public StudentLogic()
@@ -20,21 +20,13 @@ namespace BiTech.LabTest.BLL
             var databaseName = Tool.GetConfiguration("DatabaseName");
             Database = new Database(connectionString, databaseName);
             
-            this.StudentRepository = new EntityRepository<TestData>(Database, "testdata");
         }
 
-        public string GetTest(string testId)
+        public TestData GetTest(string testId)
         {
-            /*;
-            var connectionString = Tool.GetConfiguration("ConnectionString");
-            var databaseName = Tool.GetConfiguration("DatabaseName");
-            Database = new Database(connectionString, databaseName);
+            this.TestDataRepository = new EntityRepository<TestData>(Database, "testdata");
 
-
-            this.StudentRepository = new EntityRepository<TestData>(Database, "testdata");
-            TestData testdata  = StudentRepository.GetById(testId);*/
-            return this.StudentRepository.GetById(testId).Data;
-            //new EntityRepository(database, "testdata").GetById();
+            return TestDataRepository.GetById(testId);
         }
     }
 }
