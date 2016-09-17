@@ -160,11 +160,7 @@
     </Compile>
     <Compile Include="Models\Enums\ApplicationRole.cs" />
     <Compile Include="Models\Enums\StudentTestStepEnum.cs" />
-    <Compile Include="Models\ViewModels\Interface\IAnswerViewModel.cs" />
-    <Compile Include="Models\ViewModels\Interface\IGroupQuestionViewModel.cs" />
-    <Compile Include="Models\ViewModels\Interface\IQuestionOfType.cs" />
-    <Compile Include="Models\ViewModels\Interface\ISingleQuestionViewModel.cs" />
-    <Compile Include="Models\ViewModels\Interface\ITestGroupViewModel.cs" />
+    <Compile Include="Models\ViewModels\Interface\Student.cs" />
     <Compile Include="Models\ViewModels\Student.cs" />
     <Compile Include="Models\ViewModels\Teacher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

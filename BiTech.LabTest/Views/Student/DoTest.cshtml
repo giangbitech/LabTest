@@ -1,69 +1,448 @@
-﻿@model BiTech.LabTest.Models.ViewModels.Student.TestDataViewModel
+﻿@model BiTech.LabTest.Models.ViewModels.Student.TestViewModel
 <script>
 
 
 </script>
+<div id="timer" style="display: block; position: absolute;" class="timer-fix">
+    <div class="form-clock">
+        <form id="clock">
+            <span> Thời gian còn lại: </span>
+
+        </form>
+    </div>
+</div>
+
 <div class="panel panel-default">
     <div class="panel-body">
-        <div class="get-data-caption"><center><h2>@LanguageConfig.Dictionary["Student_Welcome"]</h2></center></div>
         <div class="row">
-            <div class="col-md-3 col-md-offset-4 choose-source-body choose-source-container">
+            <div class="col-md-4 col-md-offset-4 choose-source-body choose-source-container">
                 <div>
                     <center>
                         <table class="table table-striped table-bordered">
                             <tr>
-                                <td colspan="2">Trường @Model.SchoolName</td>
-                                <td colspan="2">@Model.TestType</td>
+                                <td colspan="2">Trường @Model.TestData.SchoolName</td>
+                                <td colspan="2">@Model.TestData.TestType</td>
                             </tr>
                             <tr>
-                                <td colspan="2">Năm học @Model.Year</td>
-                                <td colspan="2">@Model.Grade</td>
+                                <td colspan="2">Năm học @Model.TestData.Year</td>
+                                <td colspan="2">@Model.TestData.Grade</td>
                             </tr>
                             <tr>
-                                <td colspan="2">Môn @Model.Subject</td>
-                                <td colspan="2">Thời gian thi @Model.TestTime phút</td>
+                                <td colspan="2">Môn @Model.TestData.Subject</td>
+                                <td colspan="2">Thời gian thi @Model.TestData.TestTime phút</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">@ViewBag.StudentName</td>
+                                <td colspan="2">Lớp @ViewBag.ClassName</td>
                             </tr>
                         </table>
                     </center>
                 </div>
             </div>
         </div>
+        <div class="get-data-caption"><center><h2>@LanguageConfig.Dictionary["Student_Welcome"]</h2></center></div>
         <div id="MessageBox" class="alert-danger panel-danger uploader-message-box"></div>
-        <div class="waiting-wrapper color-wrapper">
-            <div id="TestArea" class="row">
-                <div class="col-md-6 col-md-offset-2 choose-source-body">
-                    <div class="brower-filedata-container">
+        <div id="TestArea" class="row">
+            @*Chọn phần thi - Test Group Choosing*@
+            <div class="col-md-6 col-md-offset-3">
+                <table class="table table-striped table-bordered">
+                    <tr>
+                        @foreach (var testGroup in Model.TestData.TestGroupList)
+                        {
+                            if (testGroup.isForAll)
+                            {
+                                <td colspan="2">
+                                    <label>@testGroup.Title</label>
+                                </td>
+                            }
+                        }
+                        @foreach (var testGroup in Model.TestData.TestGroupList)
+                        {
+                            if (!testGroup.isForAll)
+                            {
+                                <td colspan="2">
+
+                                    @Html.RadioButtonFor(m => m.TestResult.TestGroupChoose, testGroup.Title)
+                                    <!--input type="radio" name="TestGroupChoose" id="opt-testGroup.Title" value="testGroup.Title">-->
+                                    <label>@testGroup.Title</label>
+                                </td>
+                            }
+                        }
+                    </tr>
+                </table>
+            </div>
+
+            @*Nội dung thi - Test*@
+
+            <div class="col-md-6 col-md-offset-3">
+                @using (Ajax.BeginForm("DoneTest", "Student", null, new AjaxOptions { OnSuccess = "ThanhCong" }, new { id = "DoTestForm" }))
+                {
+                    <div class="">
                         <div>
-                            @Model.TestGroupList[0].Quiz.ListOfSingles.Count()
-                            @Model.TestGroupList[0].Quiz.ListOfGroups.Count()
-                            @Model.TestGroupList[0].Underline.ListOfSingles.Count()
-                            @Model.TestGroupList[0].Underline.ListOfGroups.Count()
-                            @Model.TestGroupList[0].Fill.ListOfSingles.Count()
-                            @Model.TestGroupList[0].Fill.ListOfGroups.Count()
-                            @Model.TestGroupList[0].TrueFalse.ListOfSingles.Count()
-                            @Model.TestGroupList[0].TrueFalse.ListOfGroups.Count()
-                            @Model.TestGroupList[0].Matching.ListOfSingles.Count()
-                            @Model.TestGroupList[0].Matching.ListOfGroups.Count()
-                            @*@foreach (var item in Model.Questions)
-                                {
 
+                            <!--Xuất từng phần-->
+
+                            @for (int gid = 0; gid < Model.TestData.TestGroupList.Count; gid++)
+                            {
+                                <div class="do-test-testGroup-div ">
                                     <div>
-                                        Cau hoi:  @item.QuestionContent
+                                        <h2>@Model.TestData.TestGroupList[gid].Title</h2>
+                                        @Html.HiddenFor(m => m.TestResult.GroupList[gid].GroupName, new { id = "natureOfVisitField", Value = @Model.TestData.TestGroupList[gid].Title })
                                     </div>
-
-                                    if (item.QuestionType == BiTech.LabTest.Models.ViewModels.Student.QuestionTypeEnum.TrueFalse)
+                                    @*Xuất trắc nghiệm - print quiz*@
+                                    @for (int qid = 0; qid < Model.TestData.TestGroupList[gid].Quiz.ListOfSingles.Count; qid++)
                                     {
-                                        <div>@item.FirstAnswer</div>
-                                        <div></div>
-                                        <div></div>
-                                        <div></div>
+                                        <div class="single-question-div">
+                                            <div>
+                                                <h4>Câu @Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].STT: @Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].Content</h4>
+                                            </div>
+                                            <ul class="">
+                                                @for (int aid = 0; aid < @Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList.Count; aid++)
+                                                {
+                                                    <li>
+                                                        @Html.RadioButtonFor(m => m.TestResult.GroupList[gid].QuestionList[int.Parse(Model.TestResult.GroupList[gid].QuestionList[qid].STT)].Answer[aid],
+                                                        Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList[aid].STT,
+                                                        new
+                                                        {
+                                                        Name = Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].STT,
+                                                        id = Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].STT + "-" + Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList[aid].STT + "-option"
+                                                        })
+                                                        <label for="@Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].STT-@Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList[aid].STT-option">
+                                                            @Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList[aid].Content
+                                                        </label>
+                                                        <div class="check"><div class=""></div></div>
+                                                    </li>
+                                                }
+
+                                            </ul>
+                                        </div>
+                                    }
+                                </div>
+                            }
+
+                            @foreach (var testGroup in Model.TestData.TestGroupList)
+                            {
+                                <div class="do-test-testGroup-div ">
+                                    <div>
+                                        <h2>@testGroup.Title</h2>
+                                        <input type="hidden" name=".GroupList[0].GroupName" id="opt-@testGroup.Title" value="@testGroup.Title">
+                                    </div>
+                                    @*Xuất trắc nghiệm - print quiz*@
+                                    @foreach (var ques in testGroup.Quiz.ListOfSingles)
+                                    {
+                                        <div class="single-question-div">
+                                            <div>
+                                                <h4>Câu @ques.STT: @ques.Content</h4>
+                                            </div>
+                                            <ul class="">
+                                                @foreach (var aw in ques.AnswerList)
+                                                {
+                                                    <li>
+                                                        <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
+                                                        <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                        <div class="check"><div class=""></div></div>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
                                     }
 
-                                }*@
+                                    @foreach (var gques in testGroup.Quiz.ListOfGroups)
+                                    {
+                                        <div class="group-question-div">
+                                            <div>
+                                                <h4>Câu chùm @gques.Content (cho @gques.SingleQuestionList.Count() câu sau)</h4>
+                                            </div>
+                                            @foreach (var ques in gques.SingleQuestionList)
+                                            {
+                                                <div class="single-question-div">
+                                                    <div>
+                                                        <h4>Câu @ques.STT: @ques.Content</h4>
+                                                    </div>
+                                                    <ul class="">
+                                                        @foreach (var aw in ques.AnswerList)
+                                                        {
+                                                            <li>
+                                                                <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
+                                                                <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                                <div class="check"><div class=""></div></div>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    @*Xuất gạch chân - print underline*@
+                                    @foreach (var ques in testGroup.Underline.ListOfSingles)
+                                    {
+                                        <div class="single-question-div">
+                                            <div>
+                                                <h4>Câu @ques.STT: @ques.Content</h4>
+                                            </div>
+                                            <ul class="">
+                                                @foreach (var aw in ques.AnswerList)
+                                                {
+                                                    <li>
+                                                        <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
+                                                        <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                        <div class="check"><div class=""></div></div>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+
+                                    @foreach (var gques in testGroup.Underline.ListOfGroups)
+                                    {
+                                        <div class="group-question-div">
+                                            <div>
+                                                <h4>Câu chùm @gques.Content (cho @gques.SingleQuestionList.Count() câu sau)</h4>
+                                            </div>
+                                            @foreach (var ques in gques.SingleQuestionList)
+                                            {
+                                                <div class="single-question-div">
+                                                    <div>
+                                                        <h4>Câu @ques.STT: @ques.Content</h4>
+                                                    </div>
+                                                    <ul class="">
+                                                        @foreach (var aw in ques.AnswerList)
+                                                        {
+                                                            <li>
+                                                                <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
+                                                                <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                                <div class="check"><div class=""></div></div>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            }
+                                        </div>
+
+                                    }
+
+                                    @*Xuất điền khuyết - print fill*@
+                                    @foreach (var ques in testGroup.Fill.ListOfSingles)
+                                    {
+                                        <div class="single-question-div">
+                                            <div>
+                                                <h4>Câu @ques.STT: @ques.Content</h4>
+                                            </div>
+                                            <ul class="">
+                                                @foreach (var aw in ques.AnswerList)
+                                                {
+                                                    <li>
+                                                        <input type="text" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="">
+                                                        <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+
+                                    @foreach (var gques in testGroup.Fill.ListOfGroups)
+                                    {
+                                        <div class="group-question-div">
+                                            <div>
+                                                <h4>Câu chùm @gques.Content (cho @gques.SingleQuestionList.Count() câu sau)</h4>
+                                            </div>
+                                            @foreach (var ques in gques.SingleQuestionList)
+                                            {
+                                                <div class="single-question-div">
+                                                    <div>
+                                                        <h4>Câu @ques.STT: @ques.Content</h4>
+                                                    </div>
+                                                    <ul class="">
+                                                        @foreach (var aw in ques.AnswerList)
+                                                        {
+                                                            <li>
+                                                                <input type="text" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="">
+                                                                <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @*Xuất đúng sai - print true false*@
+                                    @foreach (var ques in testGroup.TrueFalse.ListOfSingles)
+                                    {
+                                        <div class="single-question-div">
+                                            <div>
+                                                <h4>Câu @ques.STT: @ques.Content</h4>
+                                            </div>
+                                            <ul class="">
+                                                @foreach (var aw in ques.AnswerList)
+                                                {
+                                                    <li>
+                                                        <input type="checkbox" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
+                                                        <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                        <div class="checkboxx"><div class=""></div></div>
+                                                    </li>
+                                                }
+                                            </ul>
+                                        </div>
+                                    }
+
+                                    @foreach (var gques in testGroup.TrueFalse.ListOfGroups)
+                                    {
+                                        <div class="group-question-div">
+                                            <div>
+                                                <h4>Câu chùm @gques.Content (cho @gques.SingleQuestionList.Count() câu sau)</h4>
+                                            </div>
+                                            @foreach (var ques in gques.SingleQuestionList)
+                                            {
+                                                <div class="single-question-div">
+                                                    <div>
+                                                        <h4>Câu @ques.STT: @ques.Content</h4>
+                                                    </div>
+                                                    <ul class="">
+                                                        @foreach (var aw in ques.AnswerList)
+                                                        {
+                                                            <li>
+                                                                <input type="checkbox" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
+                                                                <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                                <div class="checkboxx"><div class=""></div></div>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @*Xuất nối chéo - print matching*@
+                                    @foreach (var ques in testGroup.Matching.ListOfSingles)
+                                    {
+                                        <div class="single-question-div">
+                                            <div>
+                                                <h4>Câu @ques.STT: @ques.Content</h4>
+                                            </div>
+                                            <table style="width:100%">
+                                                @for (int aw = 0; aw < ques.AnswerList.Count; aw += 2)
+                                                {
+                                                    <tr>
+                                                        <td width="50%" style="padding-right: 5px">
+                                                            <input class="matchingText" type="text" name="@ques.STT" id="@ques.STT-@ques.AnswerList[aw].STT-option" value="">
+                                                            <label>@((aw / 2) + 1). @ques.AnswerList[aw].Content</label>
+                                                        </td>
+                                                        <td width="50%">
+                                                            <label>@(((char)(aw / 2) + 64).ToString()) @ques.AnswerList[aw + 1].Content</label>
+                                                        </td>
+
+                                                    </tr>
+                                                }
+
+                                            </table>
+                                        </div>
+                                    }
+
+                                    @foreach (var gques in testGroup.Matching.ListOfGroups)
+                                    {
+                                        <div class="group-question-div">
+                                            <div>
+                                                <h4>Câu chùm @gques.Content (cho @gques.SingleQuestionList.Count() câu sau)</h4>
+                                            </div>
+                                            @foreach (var ques in gques.SingleQuestionList)
+                                            {
+                                                <div class="single-question-div">
+                                                    <div>
+                                                        <h4>Câu @ques.STT: @ques.Content</h4>
+                                                    </div>
+                                                    <ul class="">
+                                                        @foreach (var aw in ques.AnswerList)
+                                                        {
+                                                            <li>
+                                                                <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
+                                                                <label for="@ques.STT-@aw.STT-option">@aw.Content</label>
+                                                                <div class="check"><div class=""></div></div>
+                                                            </li>
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            }
                         </div>
                     </div>
-                </div>
+                    <div class="col-md-6 col-md-offset-3">
+                        <center>
+                            <input type="hidden" name=".StudentName" value="@ViewBag.StudentName" />
+                            <input type="hidden" name=".StudentClass" value="@ViewBag.ClassName" />
+                            <input type="hidden" name=".StudentIPAdd" value="@ViewBag.StudentIPAdd" />
+                            <input id="btnDoneTest" type="submit" value="@LanguageConfig.Dictionary["Student_Done_Test"]"
+                                   class="btn btn-primary btn-lg">
+                        </center>
+                    </div>
+                }
             </div>
         </div>
     </div>
 </div>
+@ViewBag.StudentIPAdd
+
+@using (Ajax.BeginForm("DoneTestX", "Student", null, new AjaxOptions { OnSuccess = "NhanDeThiThanhCong" }, new { id = "DoTestForm" }))
+{
+    @Html.TextBoxFor(m => m.TestResult.StudentIPAdd)
+    @Html.HiddenFor(m => m.TestResult.StudentName)
+    @Html.HiddenFor(m => m.TestResult.StudentClass)
+    foreach (var testGroup in Model.TestData.TestGroupList)
+    {
+        if (testGroup.isForAll)
+        {
+            <td colspan="2">
+                <label>@testGroup.Title</label>
+            </td>
+        }
+    }
+    foreach (var testGroup in Model.TestData.TestGroupList)
+    {
+        if (!testGroup.isForAll)
+        {
+            <td colspan="2">
+
+                @Html.RadioButtonFor(m => m.TestResult.TestGroupChoose, testGroup.Title)
+                <!--input type="radio" name="TestGroupChoose" id="opt-testGroup.Title" value="testGroup.Title">-->
+                <label>@testGroup.Title</label>
+            </td>
+        }
+    }
+
+    for (int aid = 0; aid < @Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList.Count; aid++)
+    {
+
+        @Html.HiddenFor(m => m.TestResult.GroupList[0].QuestionList[1].STT, new { id = "natureOfVisitField", Value = @Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].STT })
+        @Html.HiddenFor(m => m.TestResult.GroupList[0].QuestionList[1].ID, new { id = "natureOfVisitField", Value = @Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].ID })
+        <li>
+            @Html.RadioButtonFor(m => m.TestResult.GroupList[0].QuestionList[int.Parse(Model.TestResult.GroupList[1].QuestionList[1].STT)].Answer[aid].Content,
+                                                        Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList[aid].STT,
+                                                        new
+                                                        {
+                                                            id = Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].STT + "-" + Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList[aid].STT + "-option"
+                                                        })
+            <label for="@Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].STT-@Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList[aid].STT-option">
+                @Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList[aid].Content
+            </label>
+            <div class="check"><div class=""></div></div>
+        </li>
+    }
+
+    <input id="btnDoneTestx" type="submit" value="@LanguageConfig.Dictionary["Student_Done_Test"]"
+           class="btn btn-primary btn-lg">
+}
+
+<script>
+    function NhanDeThiThanhCong(response) {
+    }
+</script>
+
+@section scripts{
+    <script>
+        function ThanhCong(response) {
+        }
+    </script>
+}

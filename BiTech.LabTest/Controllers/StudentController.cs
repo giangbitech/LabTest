@@ -82,6 +82,7 @@ namespace BiTech.LabTest.Controllers
 
             ViewBag.StudentName = Session["FullName"].ToString();
             ViewBag.ClassName = Session["Class"].ToString();
+            ViewBag.StudentIPAdd = Request.ServerVariables["LOCAL_ADDR"].ToString();
             return View();
         }
 
@@ -117,288 +118,348 @@ namespace BiTech.LabTest.Controllers
             var testDataInJson = JObject.Parse(sr.ReadToEnd());
 
             #region Parse cac cau hoi de xuat ra man hinh
-            var testGroupList = new List<ITestGroupViewModel>();
+            var testGroupList = new List<TestGroupViewModel>();
             // lấy từng nhóm câu hỏi ra
+            int stt = 1;
             for (int i = 0; i < testDataInJson["test"]["groups"].Count(); i++)
             {
-                TestGroupViewModel testGruop = new TestGroupViewModel();
+                TestGroupViewModel testGroup = new TestGroupViewModel();
+                testGroup.isForAll = (i == 0);
 
-                testGruop.Title = testDataInJson["test"]["groups"][i]["groupInfo"]["title"]?.ToString();
+                testGroup.Title = testDataInJson["test"]["groups"][i]["groupInfo"]["title"]?.ToString();
 
                 #region Câu Trắc Nghiệm - Quiz Question
-                testGruop.Quiz = new QuestionsOfType();
+                testGroup.Quiz = new QuestionPackage();
 
                 // lấy câu hỏi trắc nghiệm đơn - get single quiz
-                testGruop.Quiz.ListOfSingles = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                testGroup.Quiz.ListOfSingles = new List<SingleQuestionViewModel>();
                 for (int j = 0; j < testDataInJson["test"]["groups"][i]["quiz"]["qSingle"].Count(); j++)
                 {
                     SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                    sqvm.STT = stt.ToString();
+                    stt++;
                     sqvm.ID = testDataInJson["test"]["groups"][i]["quiz"]["qSingle"][j]["sID"]?.ToString();
                     sqvm.Score = testDataInJson["test"]["groups"][i]["quiz"]["qSingle"][j]["sScore"]?.ToString();
                     sqvm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qSingle"][j]["sContain"]?.ToString();
                     sqvm.QuestionType = QuestionTypeEnum.Quiz;
-                    sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                    sqvm.AnswerList = new List<AnswerViewModel>();
                     // lấy đáp án
+                    int awStt = 1;
                     for (int k = 0; k < testDataInJson["test"]["groups"][i]["quiz"]["qSingle"][j]["sAList"].Count(); k++)
                     {
                         AnswerViewModel avm = new AnswerViewModel();
+                        avm.STT = awStt.ToString();
+                        avm.ID = awStt.ToString();
+                        awStt++;
                         avm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qSingle"][j]["sAList"][k]["sAContain"]?.ToString();
                         avm.RightAnswer = testDataInJson["test"]["groups"][i]["quiz"]["qSingle"][j]["sAList"][k]["sAw"]?.ToString();
                         sqvm.AnswerList.Add(avm);
                     }
-                    testGruop.Quiz.ListOfSingles.Add(sqvm);
+                    testGroup.Quiz.ListOfSingles.Add(sqvm);
                 }
 
                 // lấy câu hỏi trắc nghiệm chùm - get group quiz
-                testGruop.Quiz.ListOfGroups = new List<Models.ViewModels.Interface.IGroupQuestionViewModel>();
+                testGroup.Quiz.ListOfGroups = new List<GroupQuestionViewModel>();
                 for (int l = 0; l < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"].Count(); l++)
                 {
                     GroupQuestionViewModel gqvm = new GroupQuestionViewModel();
                     gqvm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["qgTitle"]?.ToString();
-                    gqvm.SingleQuestionList = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                    gqvm.SingleQuestionList = new List<SingleQuestionViewModel>();
                     for (int j = 0; j < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"].Count(); j++)
                     {
                         SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                        sqvm.STT = stt.ToString();
+                        stt++;
                         sqvm.ID = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sID"]?.ToString();
                         sqvm.Score = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sScore"]?.ToString();
                         sqvm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sContain"]?.ToString();
                         sqvm.QuestionType = QuestionTypeEnum.Quiz;
-                        sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                        sqvm.AnswerList = new List<AnswerViewModel>();
                         // lấy đáp án
+                        int awStt = 1;
                         for (int k = 0; k < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"].Count(); k++)
                         {
                             AnswerViewModel avm = new AnswerViewModel();
+                            avm.STT = awStt.ToString();
+                            avm.ID = awStt.ToString();
+                            awStt++;
                             avm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"][k]["sAContain"]?.ToString();
                             avm.RightAnswer = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"][k]["sAw"]?.ToString();
                             sqvm.AnswerList.Add(avm);
                         }
                         gqvm.SingleQuestionList.Add(sqvm);
                     }
-                    testGruop.Quiz.ListOfGroups.Add(gqvm);
+                    testGroup.Quiz.ListOfGroups.Add(gqvm);
                 }
                 #endregion
 
                 #region Câu Gạch Chân - Underline question
-                testGruop.Underline = new QuestionsOfType();
+                testGroup.Underline = new QuestionPackage();
 
                 // lấy câu hỏi gạch chân đơn - get single underline
-                testGruop.Underline.ListOfSingles = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                testGroup.Underline.ListOfSingles = new List<SingleQuestionViewModel>();
                 for (int j = 0; j < testDataInJson["test"]["groups"][i]["underline"]["qSingle"].Count(); j++)
                 {
                     SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                    sqvm.STT = stt.ToString();
+                    stt++;
                     sqvm.ID = testDataInJson["test"]["groups"][i]["underline"]["qSingle"][j]["sID"]?.ToString();
                     sqvm.Score = testDataInJson["test"]["groups"][i]["underline"]["qSingle"][j]["sScore"]?.ToString();
                     sqvm.Content = testDataInJson["test"]["groups"][i]["underline"]["qSingle"][j]["sContain"]?.ToString();
                     sqvm.QuestionType = QuestionTypeEnum.Underline;
-                    sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                    sqvm.AnswerList = new List<AnswerViewModel>();
                     // lấy đáp án
+                    int awStt = 1;
                     for (int k = 0; k < testDataInJson["test"]["groups"][i]["underline"]["qSingle"][j]["sAList"].Count(); k++)
                     {
                         AnswerViewModel avm = new AnswerViewModel();
+                        avm.STT = awStt.ToString();
+                        avm.ID = awStt.ToString();
+                        awStt++;
                         avm.Content = testDataInJson["test"]["groups"][i]["underline"]["qSingle"][j]["sAList"][k]["sAContain"]?.ToString();
                         avm.RightAnswer = testDataInJson["test"]["groups"][i]["underline"]["qSingle"][j]["sAList"][k]["sAw"]?.ToString();
                         sqvm.AnswerList.Add(avm);
                     }
-                    testGruop.Underline.ListOfSingles.Add(sqvm);
+                    testGroup.Underline.ListOfSingles.Add(sqvm);
                 }
 
                 // lấy câu hỏi gạch chân chùm - get group underline
-                testGruop.Underline.ListOfGroups = new List<Models.ViewModels.Interface.IGroupQuestionViewModel>();
+                testGroup.Underline.ListOfGroups = new List<GroupQuestionViewModel>();
                 for (int l = 0; l < testDataInJson["test"]["groups"][i]["underline"]["qGroup"].Count(); l++)
                 {
                     GroupQuestionViewModel gqvm = new GroupQuestionViewModel();
                     gqvm.Content = testDataInJson["test"]["groups"][i]["underline"]["qGroup"][l]["qgTitle"]?.ToString();
-                    gqvm.SingleQuestionList = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                    gqvm.SingleQuestionList = new List<SingleQuestionViewModel>();
                     for (int j = 0; j < testDataInJson["test"]["groups"][i]["underline"]["qGroup"][l]["underlineSList"].Count(); j++)
                     {
                         SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                        sqvm.STT = stt.ToString();
+                        stt++;
                         sqvm.ID = testDataInJson["test"]["groups"][i]["underline"]["qGroup"][l]["underlineSList"][j]["sID"]?.ToString();
                         sqvm.Score = testDataInJson["test"]["groups"][i]["underline"]["qGroup"][l]["underlineSList"][j]["sScore"]?.ToString();
                         sqvm.Content = testDataInJson["test"]["groups"][i]["underline"]["qGroup"][l]["underlineSList"][j]["sContain"]?.ToString();
                         sqvm.QuestionType = QuestionTypeEnum.Underline;
-                        sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                        sqvm.AnswerList = new List<AnswerViewModel>();
                         // lấy đáp án
+                        int awStt = 1;
                         for (int k = 0; k < testDataInJson["test"]["groups"][i]["underline"]["qGroup"][l]["underlineSList"][j]["sAList"].Count(); k++)
                         {
                             AnswerViewModel avm = new AnswerViewModel();
+                            avm.STT = awStt.ToString();
+                            avm.ID = awStt.ToString();
+                            awStt++;
                             avm.Content = testDataInJson["test"]["groups"][i]["underline"]["qGroup"][l]["underlineSList"][j]["sAList"][k]["sAContain"]?.ToString();
                             avm.RightAnswer = testDataInJson["test"]["groups"][i]["underline"]["qGroup"][l]["underlineSList"][j]["sAList"][k]["sAw"]?.ToString();
                             sqvm.AnswerList.Add(avm);
                         }
                         gqvm.SingleQuestionList.Add(sqvm);
                     }
-                    testGruop.Underline.ListOfGroups.Add(gqvm);
+                    testGroup.Underline.ListOfGroups.Add(gqvm);
                 }
                 #endregion
 
                 #region Câu Điền Khuyết - Fill Question
-                testGruop.Fill = new QuestionsOfType();
+                testGroup.Fill = new QuestionPackage();
 
                 // lấy câu hỏi điền khuyết đơn - get single fill
-                testGruop.Fill.ListOfSingles = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                testGroup.Fill.ListOfSingles = new List<SingleQuestionViewModel>();
                 for (int j = 0; j < testDataInJson["test"]["groups"][i]["fill"]["qSingle"].Count(); j++)
                 {
                     SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                    sqvm.STT = stt.ToString();
+                    stt++;
                     sqvm.ID = testDataInJson["test"]["groups"][i]["fill"]["qSingle"][j]["sID"]?.ToString();
                     sqvm.Score = testDataInJson["test"]["groups"][i]["fill"]["qSingle"][j]["sScore"]?.ToString();
                     sqvm.Content = testDataInJson["test"]["groups"][i]["fill"]["qSingle"][j]["sContain"]?.ToString();
                     sqvm.QuestionType = QuestionTypeEnum.Fill;
-                    sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                    sqvm.AnswerList = new List<AnswerViewModel>();
                     // lấy đáp án
+                    int awStt = 1;
                     for (int k = 0; k < testDataInJson["test"]["groups"][i]["fill"]["qSingle"][j]["sAList"].Count(); k++)
                     {
                         AnswerViewModel avm = new AnswerViewModel();
+                        avm.STT = awStt.ToString();
+                        avm.ID = awStt.ToString();
+                        awStt++;
                         avm.Content = testDataInJson["test"]["groups"][i]["fill"]["qSingle"][j]["sAList"][k]["sAContain"]?.ToString();
                         avm.RightAnswer = testDataInJson["test"]["groups"][i]["fill"]["qSingle"][j]["sAList"][k]["sAw"]?.ToString();
                         sqvm.AnswerList.Add(avm);
                     }
-                    testGruop.Fill.ListOfSingles.Add(sqvm);
+                    testGroup.Fill.ListOfSingles.Add(sqvm);
                 }
 
                 // lấy câu hỏi điền khuyết chùm - get group fill
-                testGruop.Fill.ListOfGroups = new List<Models.ViewModels.Interface.IGroupQuestionViewModel>();
+                testGroup.Fill.ListOfGroups = new List<GroupQuestionViewModel>();
                 for (int l = 0; l < testDataInJson["test"]["groups"][i]["fill"]["qGroup"].Count(); l++)
                 {
                     GroupQuestionViewModel gqvm = new GroupQuestionViewModel();
                     gqvm.Content = testDataInJson["test"]["groups"][i]["fill"]["qGroup"][l]["qgTitle"]?.ToString();
-                    gqvm.SingleQuestionList = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                    gqvm.SingleQuestionList = new List<SingleQuestionViewModel>();
                     for (int j = 0; j < testDataInJson["test"]["groups"][i]["fill"]["qGroup"][l]["fillSList"].Count(); j++)
                     {
                         SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                        sqvm.STT = stt.ToString();
+                        stt++;
                         sqvm.ID = testDataInJson["test"]["groups"][i]["fill"]["qGroup"][l]["fillSList"][j]["sID"]?.ToString();
                         sqvm.Score = testDataInJson["test"]["groups"][i]["fill"]["qGroup"][l]["fillSList"][j]["sScore"]?.ToString();
                         sqvm.Content = testDataInJson["test"]["groups"][i]["fill"]["qGroup"][l]["fillSList"][j]["sContain"]?.ToString();
                         sqvm.QuestionType = QuestionTypeEnum.Fill;
-                        sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                        sqvm.AnswerList = new List<AnswerViewModel>();
                         // lấy đáp án
+                        int awStt = 1;
                         for (int k = 0; k < testDataInJson["test"]["groups"][i]["fill"]["qGroup"][l]["fillSList"][j]["sAList"].Count(); k++)
                         {
                             AnswerViewModel avm = new AnswerViewModel();
+                            avm.STT = awStt.ToString();
+                            avm.ID = awStt.ToString();
+                            awStt++;
                             avm.Content = testDataInJson["test"]["groups"][i]["fill"]["qGroup"][l]["fillSList"][j]["sAList"][k]["sAContain"]?.ToString();
                             avm.RightAnswer = testDataInJson["test"]["groups"][i]["fill"]["qGroup"][l]["fillSList"][j]["sAList"][k]["sAw"]?.ToString();
                             sqvm.AnswerList.Add(avm);
                         }
                         gqvm.SingleQuestionList.Add(sqvm);
                     }
-                    testGruop.Fill.ListOfGroups.Add(gqvm);
+                    testGroup.Fill.ListOfGroups.Add(gqvm);
                 }
                 #endregion
 
                 #region Câu Đúng Sai - True False Question
-                testGruop.TrueFalse = new QuestionsOfType();
+                testGroup.TrueFalse = new QuestionPackage();
 
                 // lấy câu hỏi đúng sai đơn - get single trueFalse
-                testGruop.TrueFalse.ListOfSingles = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                testGroup.TrueFalse.ListOfSingles = new List<SingleQuestionViewModel>();
                 for (int j = 0; j < testDataInJson["test"]["groups"][i]["trueFalse"]["qSingle"].Count(); j++)
                 {
                     SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                    sqvm.STT = stt.ToString();
+                    stt++;
                     sqvm.ID = testDataInJson["test"]["groups"][i]["trueFalse"]["qSingle"][j]["sID"]?.ToString();
                     sqvm.Score = testDataInJson["test"]["groups"][i]["trueFalse"]["qSingle"][j]["sScore"]?.ToString();
                     sqvm.Content = testDataInJson["test"]["groups"][i]["trueFalse"]["qSingle"][j]["sContain"]?.ToString();
                     sqvm.QuestionType = QuestionTypeEnum.TrueFalse;
-                    sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                    sqvm.AnswerList = new List<AnswerViewModel>();
                     // lấy đáp án
+                    int awStt = 1;
                     for (int k = 0; k < testDataInJson["test"]["groups"][i]["trueFalse"]["qSingle"][j]["sAList"].Count(); k++)
                     {
                         AnswerViewModel avm = new AnswerViewModel();
+                        avm.STT = awStt.ToString();
+                        avm.ID = awStt.ToString();
+                        awStt++;
                         avm.Content = testDataInJson["test"]["groups"][i]["trueFalse"]["qSingle"][j]["sAList"][k]["sAContain"]?.ToString();
                         avm.RightAnswer = testDataInJson["test"]["groups"][i]["trueFalse"]["qSingle"][j]["sAList"][k]["sAw"]?.ToString();
                         sqvm.AnswerList.Add(avm);
                     }
-                    testGruop.TrueFalse.ListOfSingles.Add(sqvm);
+                    testGroup.TrueFalse.ListOfSingles.Add(sqvm);
                 }
 
                 // lấy câu hỏi đúng sai chùm - get group trueFalse
-                testGruop.TrueFalse.ListOfGroups = new List<Models.ViewModels.Interface.IGroupQuestionViewModel>();
+                testGroup.TrueFalse.ListOfGroups = new List<GroupQuestionViewModel>();
                 for (int l = 0; l < testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"].Count(); l++)
                 {
                     GroupQuestionViewModel gqvm = new GroupQuestionViewModel();
                     gqvm.Content = testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"][l]["qgTitle"]?.ToString();
-                    gqvm.SingleQuestionList = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                    gqvm.SingleQuestionList = new List<SingleQuestionViewModel>();
                     for (int j = 0; j < testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"][l]["truefalseSList"].Count(); j++)
                     {
                         SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                        sqvm.STT = stt.ToString();
+                        stt++;
                         sqvm.ID = testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"][l]["truefalseSList"][j]["sID"]?.ToString();
                         sqvm.Score = testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"][l]["truefalseSList"][j]["sScore"]?.ToString();
                         sqvm.Content = testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"][l]["truefalseSList"][j]["sContain"]?.ToString();
                         sqvm.QuestionType = QuestionTypeEnum.TrueFalse;
-                        sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                        sqvm.AnswerList = new List<AnswerViewModel>();
                         // lấy đáp án
+                        int awStt = 1;
                         for (int k = 0; k < testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"][l]["truefalseSList"][j]["sAList"].Count(); k++)
                         {
                             AnswerViewModel avm = new AnswerViewModel();
+                            avm.STT = awStt.ToString();
+                            avm.ID = awStt.ToString();
+                            awStt++;
                             avm.Content = testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"][l]["truefalseSList"][j]["sAList"][k]["sAContain"]?.ToString();
                             avm.RightAnswer = testDataInJson["test"]["groups"][i]["trueFalse"]["qGroup"][l]["truefalseSList"][j]["sAList"][k]["sAw"]?.ToString();
                             sqvm.AnswerList.Add(avm);
                         }
                         gqvm.SingleQuestionList.Add(sqvm);
                     }
-                    testGruop.TrueFalse.ListOfGroups.Add(gqvm);
+                    testGroup.TrueFalse.ListOfGroups.Add(gqvm);
                 }
                 #endregion
 
                 #region Câu Nối Chéo - Matching Question
-                testGruop.Matching = new QuestionsOfType();
+                testGroup.Matching = new QuestionPackage();
 
                 // lấy câu hỏi nối chéo đơn - get single matching
-                testGruop.Matching.ListOfSingles = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                testGroup.Matching.ListOfSingles = new List<SingleQuestionViewModel>();
                 for (int j = 0; j < testDataInJson["test"]["groups"][i]["matching"]["qSingle"].Count(); j++)
                 {
                     SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                    sqvm.STT = stt.ToString();
+                    stt++;
                     sqvm.ID = testDataInJson["test"]["groups"][i]["matching"]["qSingle"][j]["sID"]?.ToString();
                     sqvm.Score = testDataInJson["test"]["groups"][i]["matching"]["qSingle"][j]["sScore"]?.ToString();
                     sqvm.Content = testDataInJson["test"]["groups"][i]["matching"]["qSingle"][j]["sContain"]?.ToString();
                     sqvm.QuestionType = QuestionTypeEnum.Matching;
-                    sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                    sqvm.AnswerList = new List<AnswerViewModel>();
                     // lấy đáp án
+                    int awStt = 1;
                     for (int k = 0; k < testDataInJson["test"]["groups"][i]["matching"]["qSingle"][j]["sAList"].Count(); k++)
                     {
                         AnswerViewModel avm = new AnswerViewModel();
+                        avm.STT = awStt.ToString();
+                        avm.ID = awStt.ToString();
+                        awStt++;
                         avm.Content = testDataInJson["test"]["groups"][i]["matching"]["qSingle"][j]["sAList"][k]["sAContain"]?.ToString();
                         avm.RightAnswer = testDataInJson["test"]["groups"][i]["matching"]["qSingle"][j]["sAList"][k]["sAw"]?.ToString();
                         sqvm.AnswerList.Add(avm);
                     }
-                    testGruop.Matching.ListOfSingles.Add(sqvm);
+                    testGroup.Matching.ListOfSingles.Add(sqvm);
                 }
 
                 // lấy câu hỏi nối chéo chùm - get group matching
-                testGruop.Matching.ListOfGroups = new List<Models.ViewModels.Interface.IGroupQuestionViewModel>();
+                testGroup.Matching.ListOfGroups = new List<GroupQuestionViewModel>();
                 for (int l = 0; l < testDataInJson["test"]["groups"][i]["matching"]["qGroup"].Count(); l++)
                 {
                     GroupQuestionViewModel gqvm = new GroupQuestionViewModel();
                     gqvm.Content = testDataInJson["test"]["groups"][i]["matching"]["qGroup"][l]["qgTitle"]?.ToString();
-                    gqvm.SingleQuestionList = new List<Models.ViewModels.Interface.ISingleQuestionViewModel>();
+                    gqvm.SingleQuestionList = new List<SingleQuestionViewModel>();
                     for (int j = 0; j < testDataInJson["test"]["groups"][i]["matching"]["qGroup"][l]["matchingSList"].Count(); j++)
                     {
                         SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                        sqvm.STT = stt.ToString();
+                        stt++;
                         sqvm.ID = testDataInJson["test"]["groups"][i]["matching"]["qGroup"][l]["matchingSList"][j]["sID"]?.ToString();
                         sqvm.Score = testDataInJson["test"]["groups"][i]["matching"]["qGroup"][l]["matchingSList"][j]["sScore"]?.ToString();
                         sqvm.Content = testDataInJson["test"]["groups"][i]["matching"]["qGroup"][l]["matchingSList"][j]["sContain"]?.ToString();
                         sqvm.QuestionType = QuestionTypeEnum.Matching;
-                        sqvm.AnswerList = new List<Models.ViewModels.Interface.IAnswerViewModel>();
+                        sqvm.AnswerList = new List<AnswerViewModel>();
                         // lấy đáp án
+                        int awStt = 1;
                         for (int k = 0; k < testDataInJson["test"]["groups"][i]["matching"]["qGroup"][l]["matchingSList"][j]["sAList"].Count(); k++)
                         {
                             AnswerViewModel avm = new AnswerViewModel();
+                            avm.STT = awStt.ToString();
+                            avm.ID = awStt.ToString();
+                            awStt++;
                             avm.Content = testDataInJson["test"]["groups"][i]["matching"]["qGroup"][l]["matchingSList"][j]["sAList"][k]["sAContain"]?.ToString();
                             avm.RightAnswer = testDataInJson["test"]["groups"][i]["matching"]["qGroup"][l]["matchingSList"][j]["sAList"][k]["sAw"]?.ToString();
                             sqvm.AnswerList.Add(avm);
                         }
                         gqvm.SingleQuestionList.Add(sqvm);
                     }
-                    testGruop.Matching.ListOfGroups.Add(gqvm);
+                    testGroup.Matching.ListOfGroups.Add(gqvm);
                 }
                 #endregion
-                testGroupList.Add(testGruop);
+                testGroupList.Add(testGroup);
             }
             //testGroupList.Title
 
 
             #endregion
 
-
-
-            var viewModel = new TestDataViewModel
+            var testData = new TestDataViewModel
             {
                 SchoolName = testDataInJson["test"]["header"]["name"]?.ToString(),
                 SchoolInfo = testDataInJson["test"]["header"]["info"]?.ToString(),
@@ -410,9 +471,173 @@ namespace BiTech.LabTest.Controllers
                 TestGroupList = testGroupList
             };
 
+
+            TestResultViewModel testResult = new TestResultViewModel();
+            testResult.GroupList = new List<TestGroupResultViewModel>();
+            testResult.StudentName = Session["FullName"]?.ToString() ?? "";
+            testResult.StudentClass = Session["Class"]?.ToString() ?? "";
+            testResult.StudentIPAdd = Request.ServerVariables["LOCAL_ADDR"].ToString();
+            foreach (TestGroupViewModel tg in testData.TestGroupList)
+            {
+                stt = 0;
+                TestGroupResultViewModel gr = new TestGroupResultViewModel();
+                gr.QuestionList = new List<QuestionResultViewModel>();
+
+                //Quiz
+                for(int xx = 0; xx < tg.Quiz.ListOfSingles.Count; xx++)
+                {
+                    QuestionResultViewModel qr = new QuestionResultViewModel();
+                    qr.Answer = new List<AnswerResultViewModel>();
+                    qr.STT = (stt++).ToString();
+                    foreach(var zz in tg.Quiz.ListOfSingles[xx].AnswerList)
+                    {
+                        qr.Answer.Add(new AnswerResultViewModel());
+                    }
+                    gr.QuestionList.Add(qr);
+                }
+                for (int xx = 0; xx < tg.Quiz.ListOfGroups.Count; xx++)
+                {
+                    for (int yy = 0; yy < tg.Quiz.ListOfGroups[xx].SingleQuestionList.Count; yy++)
+                    {
+                        QuestionResultViewModel qr = new QuestionResultViewModel();
+                        qr.Answer = new List<AnswerResultViewModel>();
+                        qr.STT = (stt++).ToString();
+                        foreach (var zz in tg.Quiz.ListOfGroups[xx].SingleQuestionList[yy].AnswerList)
+                        {
+                            qr.Answer.Add(new AnswerResultViewModel());
+                        }
+                        gr.QuestionList.Add(qr);
+                    }
+                }
+
+                //Underline
+                for (int xx = 0; xx < tg.Underline.ListOfSingles.Count; xx++)
+                {
+                    QuestionResultViewModel qr = new QuestionResultViewModel();
+                    qr.Answer = new List<AnswerResultViewModel>();
+                    qr.STT = (stt++).ToString();
+                    foreach (var zz in tg.Underline.ListOfSingles[xx].AnswerList)
+                    {
+                        qr.Answer.Add(new AnswerResultViewModel());
+                    }
+                    gr.QuestionList.Add(qr);
+                }
+                for (int xx = 0; xx < tg.Underline.ListOfGroups.Count; xx++)
+                {
+                    for (int yy = 0; yy < tg.Underline.ListOfGroups[xx].SingleQuestionList.Count; yy++)
+                    {
+                        QuestionResultViewModel qr = new QuestionResultViewModel();
+                        qr.Answer = new List<AnswerResultViewModel>();
+                        qr.STT = (stt++).ToString();
+                        foreach (var zz in tg.Underline.ListOfGroups[xx].SingleQuestionList[yy].AnswerList)
+                        {
+                            qr.Answer.Add(new AnswerResultViewModel());
+                        }
+                        gr.QuestionList.Add(qr);
+                    }
+                }
+
+                //Fill
+                for (int xx = 0; xx < tg.Fill.ListOfSingles.Count; xx++)
+                {
+                    QuestionResultViewModel qr = new QuestionResultViewModel();
+                    qr.Answer = new List<AnswerResultViewModel>();
+                    qr.STT = (stt++).ToString();
+                    foreach (var zz in tg.Fill.ListOfSingles[xx].AnswerList)
+                    {
+                        qr.Answer.Add(new AnswerResultViewModel());
+                    }
+                    gr.QuestionList.Add(qr);
+                }
+                for (int xx = 0; xx < tg.Fill.ListOfGroups.Count; xx++)
+                {
+                    for (int yy = 0; yy < tg.Fill.ListOfGroups[xx].SingleQuestionList.Count; yy++)
+                    {
+                        QuestionResultViewModel qr = new QuestionResultViewModel();
+                        qr.Answer = new List<AnswerResultViewModel>();
+                        qr.STT = (stt++).ToString();
+                        foreach (var zz in tg.Fill.ListOfGroups[xx].SingleQuestionList[yy].AnswerList)
+                        {
+                            qr.Answer.Add(new AnswerResultViewModel());
+                        }
+                        gr.QuestionList.Add(qr);
+                    }
+                }
+
+                //True False
+                for (int xx = 0; xx < tg.TrueFalse.ListOfSingles.Count; xx++)
+                {
+                    QuestionResultViewModel qr = new QuestionResultViewModel();
+                    qr.Answer = new List<AnswerResultViewModel>();
+                    qr.STT = (stt++).ToString();
+                    foreach (var zz in tg.TrueFalse.ListOfSingles[xx].AnswerList)
+                    {
+                        qr.Answer.Add(new AnswerResultViewModel());
+                    }
+                    gr.QuestionList.Add(qr);
+                }
+                for (int xx = 0; xx < tg.TrueFalse.ListOfGroups.Count; xx++)
+                {
+                    for (int yy = 0; yy < tg.TrueFalse.ListOfGroups[xx].SingleQuestionList.Count; yy++)
+                    {
+                        QuestionResultViewModel qr = new QuestionResultViewModel();
+                        qr.Answer = new List<AnswerResultViewModel>();
+                        qr.STT = (stt++).ToString();
+                        foreach (var zz in tg.TrueFalse.ListOfGroups[xx].SingleQuestionList[yy].AnswerList)
+                        {
+                            qr.Answer.Add(new AnswerResultViewModel());
+                        }
+                        gr.QuestionList.Add(qr);
+                    }
+                }
+
+                //Matching
+                for (int xx = 0; xx < tg.Matching.ListOfSingles.Count; xx++)
+                {
+                    QuestionResultViewModel qr = new QuestionResultViewModel();
+                    qr.Answer = new List<AnswerResultViewModel>();
+                    qr.STT = (stt++).ToString();
+                    foreach (var zz in tg.Matching.ListOfSingles[xx].AnswerList)
+                    {
+                        qr.Answer.Add(new AnswerResultViewModel());
+                    }
+                    gr.QuestionList.Add(qr);
+                }
+                for (int xx = 0; xx < tg.Matching.ListOfGroups.Count; xx++)
+                {
+                    for (int yy = 0; yy < tg.Matching.ListOfGroups[xx].SingleQuestionList.Count; yy++)
+                    {
+                        QuestionResultViewModel qr = new QuestionResultViewModel();
+                        qr.Answer = new List<AnswerResultViewModel>();
+                        qr.STT = (stt++).ToString();
+                        foreach (var zz in tg.Matching.ListOfGroups[xx].SingleQuestionList[yy].AnswerList)
+                        {
+                            qr.Answer.Add(new AnswerResultViewModel());
+                        }
+                        gr.QuestionList.Add(qr);
+                    }
+                }
+                testResult.GroupList.Add(gr);
+            }
+            
+            TestViewModel viewModel = new TestViewModel();
+            viewModel.TestData = testData;
+            viewModel.TestResult = testResult;
             return View(viewModel);
         }
 
+        public ActionResult DoneTest(TestViewModel test)
+        {
+            
+            return null;
+        }
+
+        public ActionResult DoneTestx(TestViewModel test)
+        {
+            string stt = test.TestResult.StudentName;
+            string id = test.TestResult.StudentClass;
+            return null;
+        }
 
         public ActionResult ChangeName()
         {
