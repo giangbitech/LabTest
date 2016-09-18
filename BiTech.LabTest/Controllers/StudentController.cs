@@ -136,6 +136,23 @@ namespace BiTech.LabTest.Controllers
                 testGroup.Quiz.ListOfSingles = new List<SingleQuestion_String_OneChoice_ViewModel>();
                 testGroup.QuizN.ListOfSingles = new List<SingleQuestion_Bool_MultiChoices_ViewModel>();
 
+                List<object> aa = new List<object>();
+                SingleQuestion_Bool_MultiChoices_ViewModel axx = new SingleQuestion_Bool_MultiChoices_ViewModel();
+                axx.QuestionType = QuestionTypeEnum.QuizN;
+                                aa.Add(axx);
+
+                SingleQuestion_String_MultiChoices_ViewModel mm = new SingleQuestion_String_MultiChoices_ViewModel();
+                mm.QuestionType = QuestionTypeEnum.Fill;
+                aa.Add(mm);
+                if ((aa[0] as SingleQuestionViewModel).QuestionType == QuestionTypeEnum.QuizN)
+                {
+                    (aa[0] as SingleQuestion_Bool_MultiChoices_ViewModel).ID = "1";
+                }
+                if ((aa[1] as SingleQuestionViewModel).QuestionType == QuestionTypeEnum.QuizN)
+                {
+                    (aa[1] as SingleQuestion_Bool_MultiChoices_ViewModel).ID = "1";
+                }
+
                 for (int j = 0; j < testDataInJson["test"]["groups"][i]["quiz"]["qSingle"].Count(); j++)
                 {
 
@@ -180,39 +197,40 @@ namespace BiTech.LabTest.Controllers
                 }
 
                 // lấy câu hỏi trắc nghiệm chùm - get group quiz
-                testGroup.Quiz.ListOfGroups = new List<GroupQuestion_String_OneChoice_ViewModel>();
-                testGroup.QuizN.ListOfGroups = new List<GroupQuestion_Bool_MultiChoices_ViewModel>();
-                for (int l = 0; l < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"].Count(); l++)
-                {
-                    GroupQuestion_String_OneChoice_ViewModel gqvm = new GroupQuestion_String_OneChoice_ViewModel();
-                    gqvm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["qgTitle"]?.ToString();
-                    gqvm.SingleQuestionList = new List<SingleQuestionViewModel>();
-                    for (int j = 0; j < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"].Count(); j++)
-                    {
-                        SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
-                        sqvm.STT = stt.ToString();
-                        stt++;
-                        sqvm.ID = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sID"]?.ToString();
-                        sqvm.Score = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sScore"]?.ToString();
-                        sqvm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sContain"]?.ToString();
-                        sqvm.QuestionType = QuestionTypeEnum.Quiz;
-                        sqvm.PossibleAnswerList = new List<PossibleAnswerViewModel>();
-                        // lấy đáp án
-                        int awStt = 1;
-                        for (int k = 0; k < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"].Count(); k++)
-                        {
-                            PossibleAnswerViewModel avm = new PossibleAnswerViewModel();
-                            avm.STT = awStt.ToString();
-                            avm.ID = awStt.ToString();
-                            awStt++;
-                            avm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"][k]["sAContain"]?.ToString();
-                            avm.RightAnswer = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"][k]["sAw"]?.ToString();
-                            sqvm.PossibleAnswerList.Add(avm);
-                        }
-                        gqvm.SingleQuestionList.Add(sqvm);
-                    }
-                    testGroup.Quiz.ListOfGroups.Add(gqvm);
-                }
+                //testGroup.Quiz.ListOfGroups = new List<GroupQuestion_String_OneChoice_ViewModel>();
+                //testGroup.QuizN.ListOfGroups = new List<GroupQuestion_Bool_MultiChoices_ViewModel>();
+                //for (int l = 0; l < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"].Count(); l++)
+                //{
+                //    GroupQuestion_String_OneChoice_ViewModel gqvm = new GroupQuestion_String_OneChoice_ViewModel();
+                //    gqvm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["qgTitle"]?.ToString();
+                //    gqvm.SingleQuestionList = new List<SingleQuestionViewModel>();
+
+                //    for (int j = 0; j < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"].Count(); j++)
+                //    {
+                //        SingleQuestionViewModel sqvm = new SingleQuestionViewModel();
+                //        sqvm.STT = stt.ToString();
+                //        stt++;
+                //        sqvm.ID = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sID"]?.ToString();
+                //        sqvm.Score = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sScore"]?.ToString();
+                //        sqvm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sContain"]?.ToString();
+                //        sqvm.QuestionType = QuestionTypeEnum.Quiz;
+                //        sqvm.PossibleAnswerList = new List<PossibleAnswerViewModel>();
+                //        // lấy đáp án
+                //        int awStt = 1;
+                //        for (int k = 0; k < testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"].Count(); k++)
+                //        {
+                //            PossibleAnswerViewModel avm = new PossibleAnswerViewModel();
+                //            avm.STT = awStt.ToString();
+                //            avm.ID = awStt.ToString();
+                //            awStt++;
+                //            avm.Content = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"][k]["sAContain"]?.ToString();
+                //            avm.RightAnswer = testDataInJson["test"]["groups"][i]["quiz"]["qGroup"][l]["quizSList"][j]["sAList"][k]["sAw"]?.ToString();
+                //            sqvm.PossibleAnswerList.Add(avm);
+                //        }
+                //        gqvm.SingleQuestionList.Add(sqvm);
+                //    }
+                //    testGroup.Quiz.ListOfGroups.Add(gqvm);
+                //}
                 #endregion
 
                 //#region Câu Gạch Chân - Underline question
