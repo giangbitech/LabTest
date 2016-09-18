@@ -1,4 +1,4 @@
-﻿@model BiTech.LabTest.Models.ViewModels.Student.TestViewModel
+﻿@model BiTech.LabTest.Models.ViewModels.Student.TestDataViewModel
 <script>
 
 
@@ -20,16 +20,16 @@
                     <center>
                         <table class="table table-striped table-bordered">
                             <tr>
-                                <td colspan="2">Trường @Model.TestData.SchoolName</td>
-                                <td colspan="2">@Model.TestData.TestType</td>
+                                <td colspan="2">Trường @Model.SchoolName</td>
+                                <td colspan="2">@Model.TestType</td>
                             </tr>
                             <tr>
-                                <td colspan="2">Năm học @Model.TestData.Year</td>
-                                <td colspan="2">@Model.TestData.Grade</td>
+                                <td colspan="2">Năm học @Model.Year</td>
+                                <td colspan="2">@Model.Grade</td>
                             </tr>
                             <tr>
-                                <td colspan="2">Môn @Model.TestData.Subject</td>
-                                <td colspan="2">Thời gian thi @Model.TestData.TestTime phút</td>
+                                <td colspan="2">Môn @Model.Subject</td>
+                                <td colspan="2">Thời gian thi @Model.TestTime phút</td>
                             </tr>
                             <tr>
                                 <td colspan="2">@ViewBag.StudentName</td>
@@ -47,7 +47,7 @@
             <div class="col-md-6 col-md-offset-3">
                 <table class="table table-striped table-bordered">
                     <tr>
-                        @foreach (var testGroup in Model.TestData.TestGroupList)
+                        @foreach (var testGroup in Model.TestGroupList)
                         {
                             if (testGroup.isForAll)
                             {
@@ -56,13 +56,13 @@
                                 </td>
                             }
                         }
-                        @foreach (var testGroup in Model.TestData.TestGroupList)
+                        @foreach (var testGroup in Model.TestGroupList)
                         {
                             if (!testGroup.isForAll)
                             {
                                 <td colspan="2">
 
-                                    @Html.RadioButtonFor(m => m.TestResult.TestGroupChoose, testGroup.Title)
+                                    @Html.RadioButtonFor(m => m.TestGroupChoose, testGroup.Title)
                                     <!--input type="radio" name="TestGroupChoose" id="opt-testGroup.Title" value="testGroup.Title">-->
                                     <label>@testGroup.Title</label>
                                 </td>
@@ -82,33 +82,33 @@
 
                             <!--Xuất từng phần-->
 
-                            @for (int gid = 0; gid < Model.TestData.TestGroupList.Count; gid++)
+                            @for (int gid = 0; gid < Model.TestGroupList.Count; gid++)
                             {
                                 <div class="do-test-testGroup-div ">
                                     <div>
-                                        <h2>@Model.TestData.TestGroupList[gid].Title</h2>
-                                        @Html.HiddenFor(m => m.TestResult.GroupList[gid].GroupName, new { id = "natureOfVisitField", Value = @Model.TestData.TestGroupList[gid].Title })
+                                        <h2>@Model.TestGroupList[gid].Title</h2>
+                                        @Html.HiddenFor(m => m.TestGroupList[gid].Title)
                                     </div>
                                     @*Xuất trắc nghiệm - print quiz*@
-                                    @for (int qid = 0; qid < Model.TestData.TestGroupList[gid].Quiz.ListOfSingles.Count; qid++)
+                                    @for (int qid = 0; qid < Model.TestGroupList[gid].Quiz.ListOfSingles.Count; qid++)
                                     {
                                         <div class="single-question-div">
                                             <div>
-                                                <h4>Câu @Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].STT: @Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].Content</h4>
+                                                <h4>Câu @Model.TestGroupList[gid].Quiz.ListOfSingles[qid].STT: @Model.TestGroupList[gid].Quiz.ListOfSingles[qid].Content</h4>
                                             </div>
                                             <ul class="">
-                                                @for (int aid = 0; aid < @Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList.Count; aid++)
+                                                @for (int aid = 0; aid < @Model.TestGroupList[gid].Quiz.ListOfSingles[qid].PossibleAnswerList.Count; aid++)
                                                 {
                                                     <li>
-                                                        @Html.RadioButtonFor(m => m.TestResult.GroupList[gid].QuestionList[int.Parse(Model.TestResult.GroupList[gid].QuestionList[qid].STT)].Answer[aid],
-                                                        Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList[aid].STT,
-                                                        new
-                                                        {
-                                                        Name = Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].STT,
-                                                        id = Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].STT + "-" + Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList[aid].STT + "-option"
-                                                        })
-                                                        <label for="@Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].STT-@Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList[aid].STT-option">
-                                                            @Model.TestData.TestGroupList[gid].Quiz.ListOfSingles[qid].AnswerList[aid].Content
+                                                        @Html.RadioButtonFor(m => m.TestGroupList[gid].Quiz.ListOfSingles[qid].SelectedAnswer,
+                                                        new string[] { Model.TestGroupList[gid].Quiz.ListOfSingles[qid].PossibleAnswerList[aid].STT },
+                                                            new
+                                                            {
+                                                                Name = Model.TestGroupList[gid].Quiz.ListOfSingles[qid].STT,
+                                                                id = Model.TestGroupList[gid].Quiz.ListOfSingles[qid].STT + "-" + Model.TestGroupList[gid].Quiz.ListOfSingles[qid].PossibleAnswerList[aid].STT + "-option"
+                                                            })
+                                                        <label for="@Model.TestGroupList[gid].Quiz.ListOfSingles[qid].STT-@Model.TestGroupList[gid].Quiz.ListOfSingles[qid].PossibleAnswerList[aid].STT-option">
+                                                            @Model.TestGroupList[gid].Quiz.ListOfSingles[qid].PossibleAnswerList[aid].Content
                                                         </label>
                                                         <div class="check"><div class=""></div></div>
                                                     </li>
@@ -120,7 +120,7 @@
                                 </div>
                             }
 
-                            @foreach (var testGroup in Model.TestData.TestGroupList)
+                            @foreach (var testGroup in Model.TestGroupList)
                             {
                                 <div class="do-test-testGroup-div ">
                                     <div>
@@ -135,7 +135,7 @@
                                                 <h4>Câu @ques.STT: @ques.Content</h4>
                                             </div>
                                             <ul class="">
-                                                @foreach (var aw in ques.AnswerList)
+                                                @foreach (var aw in ques.PossibleAnswerList)
                                                 {
                                                     <li>
                                                         <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
@@ -160,7 +160,7 @@
                                                         <h4>Câu @ques.STT: @ques.Content</h4>
                                                     </div>
                                                     <ul class="">
-                                                        @foreach (var aw in ques.AnswerList)
+                                                        @foreach (var aw in ques.PossibleAnswerList)
                                                         {
                                                             <li>
                                                                 <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
@@ -181,7 +181,7 @@
                                                 <h4>Câu @ques.STT: @ques.Content</h4>
                                             </div>
                                             <ul class="">
-                                                @foreach (var aw in ques.AnswerList)
+                                                @foreach (var aw in ques.PossibleAnswerList)
                                                 {
                                                     <li>
                                                         <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
@@ -206,7 +206,7 @@
                                                         <h4>Câu @ques.STT: @ques.Content</h4>
                                                     </div>
                                                     <ul class="">
-                                                        @foreach (var aw in ques.AnswerList)
+                                                        @foreach (var aw in ques.PossibleAnswerList)
                                                         {
                                                             <li>
                                                                 <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
@@ -229,7 +229,7 @@
                                                 <h4>Câu @ques.STT: @ques.Content</h4>
                                             </div>
                                             <ul class="">
-                                                @foreach (var aw in ques.AnswerList)
+                                                @foreach (var aw in ques.PossibleAnswerList)
                                                 {
                                                     <li>
                                                         <input type="text" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="">
@@ -253,7 +253,7 @@
                                                         <h4>Câu @ques.STT: @ques.Content</h4>
                                                     </div>
                                                     <ul class="">
-                                                        @foreach (var aw in ques.AnswerList)
+                                                        @foreach (var aw in ques.PossibleAnswerList)
                                                         {
                                                             <li>
                                                                 <input type="text" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="">
@@ -274,7 +274,7 @@
                                                 <h4>Câu @ques.STT: @ques.Content</h4>
                                             </div>
                                             <ul class="">
-                                                @foreach (var aw in ques.AnswerList)
+                                                @foreach (var aw in ques.PossibleAnswerList)
                                                 {
                                                     <li>
                                                         <input type="checkbox" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
@@ -299,7 +299,7 @@
                                                         <h4>Câu @ques.STT: @ques.Content</h4>
                                                     </div>
                                                     <ul class="">
-                                                        @foreach (var aw in ques.AnswerList)
+                                                        @foreach (var aw in ques.PossibleAnswerList)
                                                         {
                                                             <li>
                                                                 <input type="checkbox" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
@@ -321,15 +321,15 @@
                                                 <h4>Câu @ques.STT: @ques.Content</h4>
                                             </div>
                                             <table style="width:100%">
-                                                @for (int aw = 0; aw < ques.AnswerList.Count; aw += 2)
+                                                @for (int aw = 0; aw < ques.PossibleAnswerList.Count; aw += 2)
                                                 {
                                                     <tr>
                                                         <td width="50%" style="padding-right: 5px">
-                                                            <input class="matchingText" type="text" name="@ques.STT" id="@ques.STT-@ques.AnswerList[aw].STT-option" value="">
-                                                            <label>@((aw / 2) + 1). @ques.AnswerList[aw].Content</label>
+                                                            <input class="matchingText" type="text" name="@ques.STT" id="@ques.STT-@ques.PossibleAnswerList[aw].STT-option" value="">
+                                                            <label>@((aw / 2) + 1). @ques.PossibleAnswerList[aw].Content</label>
                                                         </td>
                                                         <td width="50%">
-                                                            <label>@(((char)(aw / 2) + 64).ToString()) @ques.AnswerList[aw + 1].Content</label>
+                                                            <label>@(((char)(aw / 2) + 64).ToString()) @ques.PossibleAnswerList[aw + 1].Content</label>
                                                         </td>
 
                                                     </tr>
@@ -352,7 +352,7 @@
                                                         <h4>Câu @ques.STT: @ques.Content</h4>
                                                     </div>
                                                     <ul class="">
-                                                        @foreach (var aw in ques.AnswerList)
+                                                        @foreach (var aw in ques.PossibleAnswerList)
                                                         {
                                                             <li>
                                                                 <input type="radio" name="@ques.STT" id="@ques.STT-@aw.STT-option" value="@aw.STT">
@@ -387,10 +387,10 @@
 
 @using (Ajax.BeginForm("DoneTestX", "Student", null, new AjaxOptions { OnSuccess = "NhanDeThiThanhCong" }, new { id = "DoTestForm" }))
 {
-    @Html.TextBoxFor(m => m.TestResult.StudentIPAdd)
-    @Html.HiddenFor(m => m.TestResult.StudentName)
-    @Html.HiddenFor(m => m.TestResult.StudentClass)
-    foreach (var testGroup in Model.TestData.TestGroupList)
+    @Html.TextBoxFor(m => m.StudentIPAdd)
+    @Html.HiddenFor(m => m.StudentName)
+    @Html.HiddenFor(m => m.StudentClass)
+    foreach (var testGroup in Model.TestGroupList)
     {
         if (testGroup.isForAll)
         {
@@ -399,33 +399,31 @@
             </td>
         }
     }
-    foreach (var testGroup in Model.TestData.TestGroupList)
+    foreach (var testGroup in Model.TestGroupList)
     {
         if (!testGroup.isForAll)
         {
             <td colspan="2">
 
-                @Html.RadioButtonFor(m => m.TestResult.TestGroupChoose, testGroup.Title)
+                @Html.RadioButtonFor(m => m.TestGroupChoose, testGroup.Title)
                 <!--input type="radio" name="TestGroupChoose" id="opt-testGroup.Title" value="testGroup.Title">-->
                 <label>@testGroup.Title</label>
             </td>
         }
     }
 
-    for (int aid = 0; aid < @Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList.Count; aid++)
+    for (int aid = 0; aid < @Model.TestGroupList[0].Quiz.ListOfSingles[0].PossibleAnswerList.Count; aid++)
     {
 
-        @Html.HiddenFor(m => m.TestResult.GroupList[0].QuestionList[1].STT, new { id = "natureOfVisitField", Value = @Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].STT })
-        @Html.HiddenFor(m => m.TestResult.GroupList[0].QuestionList[1].ID, new { id = "natureOfVisitField", Value = @Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].ID })
-        <li>
-            @Html.RadioButtonFor(m => m.TestResult.GroupList[0].QuestionList[int.Parse(Model.TestResult.GroupList[1].QuestionList[1].STT)].Answer[aid].Content,
-                                                        Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList[aid].STT,
-                                                        new
-                                                        {
-                                                            id = Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].STT + "-" + Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList[aid].STT + "-option"
-                                                        })
-            <label for="@Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].STT-@Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList[aid].STT-option">
-                @Model.TestData.TestGroupList[0].Quiz.ListOfSingles[1].AnswerList[aid].Content
+        <li>            
+            @Html.RadioButtonFor(m => m.TestGroupList[0].Quiz.ListOfSingles[0].SelectedAnswer,
+                Model.TestGroupList[0].Quiz.ListOfSingles[0].PossibleAnswerList[aid].STT,
+                new
+                {
+                    id = Model.TestGroupList[0].Quiz.ListOfSingles[0].STT + "-" + Model.TestGroupList[0].Quiz.ListOfSingles[0].PossibleAnswerList[aid].STT + "-option"
+                })
+            <label for="@Model.TestGroupList[0].Quiz.ListOfSingles[0].STT-@Model.TestGroupList[0].Quiz.ListOfSingles[0].PossibleAnswerList[aid].STT-option">
+                @Model.TestGroupList[0].Quiz.ListOfSingles[0].PossibleAnswerList[aid].Content
             </label>
             <div class="check"><div class=""></div></div>
         </li>
