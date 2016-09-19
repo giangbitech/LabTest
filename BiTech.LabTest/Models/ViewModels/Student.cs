@@ -49,90 +49,110 @@ namespace BiTech.LabTest.Models.ViewModels
             public string StudentName { get; set; }
             public string TestGroupChoose { get; set; }
 
+            public string Base64Code { get; set; }
+
             public List<TestGroupViewModel> TestGroupList { get; set; }
         }
 
         /// <summary>
-        /// 
+        /// Phần câu hỏi thi (phần chung, phần riêng)
         /// </summary>
         public class TestGroupViewModel
         {
             public string Title { get; set; }
 
-            public Question_String_MultiChoices_Package Fill { get; set; }
-
-            public Question_String_MultiChoices_Package Matching { get; set; }
-
-            public Question_String_OneChoice_Package Quiz { get; set; }
-
-            public Question_Bool_MultiChoices_Package QuizN { get; set; }
-
-            public Question_Bool_MultiChoices_Package TrueFalse { get; set; }
-
-            public Question_String_OneChoice_Package Underline { get; set; }
+            public List<object> QuestionsList { get; set; }
 
             public bool isForAll { get; set; }
+
+            //public Question_String_MultiChoices_Package Fill { get; set; }
+
+            //public Question_String_MultiChoices_Package Matching { get; set; }
+
+            //public Question_String_OneChoice_Package Quiz { get; set; }
+
+            //public Question_Bool_MultiChoices_Package QuizN { get; set; }
+
+            //public Question_Bool_MultiChoices_Package TrueFalse { get; set; }
+
+            //public Question_String_OneChoice_Package Underline { get; set; }
         }
+
+
+        public class QuestionsPackage
+        {
+            //public List<GroupQuestionViewModel> ListOfGroups { get; set; }
+
+            public List<object> QuestionsList { get; set; }
+        }
+
+        // <summary>
+        // gói câu hỏi 1 lựa chọn
+        // </summary>
+        //public class Question_String_OneChoice_Package
+        //{
+        //    public List<GroupQuestion_String_OneChoice_ViewModel> ListOfGroups { get; set; }
+
+        //    public List<SingleQuestion_String_OneChoice_ViewModel> ListOfSingles { get; set; }
+        //}
+
+        //public class Question_Bool_MultiChoices_Package
+        //{
+        //    public List<GroupQuestion_Bool_MultiChoices_ViewModel> ListOfGroups { get; set; }
+
+        //    public List<SingleQuestion_Bool_MultiChoices_ViewModel> ListOfSingles { get; set; }
+        //}
+
+        //public class Question_String_MultiChoices_Package
+        //{
+        //    public List<GroupQuestion_String_MultiChoices_ViewModel> ListOfGroups { get; set; }
+
+        //    public List<SingleQuestion_String_MultiChoices_ViewModel> ListOfSingles { get; set; }
+        //}
 
         /// <summary>
-        /// gói câu hỏi 1 lựa chọn
+        /// object chung cho các câu hỏi đơn và chùm
         /// </summary>
-        public class Question_String_OneChoice_Package
+        public class QuestionObjectViewModel
         {
-            public List<GroupQuestion_String_OneChoice_ViewModel> ListOfGroups { get; set; }
+            public string Content { get; set; }
 
-            public List<SingleQuestion_String_OneChoice_ViewModel> ListOfSingles { get; set; }
-        }
-
-        public class Question_Bool_MultiChoices_Package
-        {
-            public List<GroupQuestion_Bool_MultiChoices_ViewModel> ListOfGroups { get; set; }
-
-            public List<SingleQuestion_Bool_MultiChoices_ViewModel> ListOfSingles { get; set; }
-        }
-
-        public class Question_String_MultiChoices_Package
-        {
-            public List<GroupQuestion_String_MultiChoices_ViewModel> ListOfGroups { get; set; }
-
-            public List<SingleQuestion_String_MultiChoices_ViewModel> ListOfSingles { get; set; }
+            public QuestionTypeEnum QuestionType { get; set; }
         }
 
         /// <summary>
         /// ViewModel cha cho các câu hỏi chùm
         /// </summary>
-        public class GroupQuestionViewModel
+        public class GroupQuestionViewModel : QuestionObjectViewModel
         {
-            public string Content { get; set; }
+            //public string Content { get; set; }
+
+            public List<object> SingleQuestionsList { get; set; }
         }
 
-        public class GroupQuestion_String_OneChoice_ViewModel : GroupQuestionViewModel
-        {
-            public List<SingleQuestion_String_OneChoice_ViewModel> SingleQuestionList { get; set; }
-        }
+        //public class GroupQuestion_String_OneChoice_ViewModel : GroupQuestionViewModel
+        //{
+        //    public List<SingleQuestion_String_OneChoice_ViewModel> SingleQuestionList { get; set; }
+        //}
 
-        public class GroupQuestion_Bool_MultiChoices_ViewModel : GroupQuestionViewModel
-        {
-            public List<SingleQuestion_Bool_MultiChoices_ViewModel> SingleQuestionList { get; set; }
-        }
+        //public class GroupQuestion_Bool_MultiChoices_ViewModel : GroupQuestionViewModel
+        //{
+        //    public List<SingleQuestion_Bool_MultiChoices_ViewModel> SingleQuestionList { get; set; }
+        //}
 
-        public class GroupQuestion_String_MultiChoices_ViewModel : GroupQuestionViewModel
-        {
-            public List<SingleQuestion_String_MultiChoices_ViewModel> SingleQuestionList { get; set; }
-        }
+        //public class GroupQuestion_String_MultiChoices_ViewModel : GroupQuestionViewModel
+        //{
+        //    public List<SingleQuestion_String_MultiChoices_ViewModel> SingleQuestionList { get; set; }
+        //}
 
         /// <summary>
         /// ViewModel cha cho các câu hỏi
         /// </summary>
-        public class SingleQuestionViewModel
+        public class SingleQuestionViewModel : QuestionObjectViewModel
         {
             public List<PossibleAnswerViewModel> PossibleAnswerList { get; set; }
 
-            public string Content { get; set; }
-
             public string ID { get; set; }
-
-            public QuestionTypeEnum QuestionType { get; set; }
 
             public string Score { get; set; }
 
@@ -255,7 +275,8 @@ namespace BiTech.LabTest.Models.ViewModels
             Fill,
             Underline,
             TrueFalse,
-            Matching
+            Matching,
+            Group
         }
     }
 }

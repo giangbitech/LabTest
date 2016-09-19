@@ -7,9 +7,8 @@
     <h2>Vui lòng chờ giữ máy, chờ Giáo viên mở đề</h2>
 </center>
 <center>
-    <input value="@LanguageConfig.Dictionary["Student_Change_Name"]"
-           onclick="location.href='@Url.Action("ChangeName", "Student")'" class="btn btn-primary btn-lg">
-    <input id="btnTrigger" value="Do Test" class="btn btn-primary btn-lg">
+    <a href="@Url.Action("ChangeName", "Student")" class="btn btn-primary btn-lg">@LanguageConfig.Dictionary["Student_Change_Name"]</a>
+    <input id="btnTrigger" value="Do Test" class="btn btn-primary btn-lg"/>
 </center>
 
 

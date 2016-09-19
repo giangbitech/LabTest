@@ -392,6 +392,9 @@
     <Content Include="Views\Teacher\NewTest.cshtml" />
     <Content Include="Views\Student\WaitingScreen.cshtml" />
     <Content Include="Views\Student\DoTest.cshtml" />
+    <Content Include="Views\Student\_TracNghiem1LuaChon.cshtml" />
+    <Content Include="Views\Student\_TracNghiemNhieuLuaChon.cshtml" />
+    <Content Include="Views\Student\_TracNghiemToanBoLuaChon.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

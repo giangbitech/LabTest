@@ -522,15 +522,6 @@ ul li {
     width: 100%;
 }
 
-    ul li input[type=radio] {
-        position: absolute;
-        visibility: hidden;
-    }
-
-    ul li input[type=checkbox] {
-        position: absolute;
-        visibility: hidden;
-    }
 
     ul li input[type=text] {
         position: absolute;

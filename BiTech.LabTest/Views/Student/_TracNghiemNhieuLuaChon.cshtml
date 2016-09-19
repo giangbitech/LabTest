@@ -1,0 +1,18 @@
+﻿@model BiTech.LabTest.Models.ViewModels.Student.SingleQuestion_Bool_MultiChoices_ViewModel
+
+
+<div class="single-question-div">
+    <div>
+        <h4>Câu @(Model.STT): @(Model.Content)</h4>
+    </div>
+    <ul class="">
+        @foreach (var item in Model.PossibleAnswerList)
+        {
+            <li>
+                <input type="checkbox" id="@Model.STT-@item.STT" name="Answer-@Model.STT" value="@Model.STT-@item.STT" />
+                @Html.LabelFor(model => model.Content, Model.Content, new { @for = Model.STT + "-" + item.STT })
+            </li>
+        }
+    </ul>
+</div>
+
