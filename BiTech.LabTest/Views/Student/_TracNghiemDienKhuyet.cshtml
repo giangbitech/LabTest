@@ -1,0 +1,19 @@
+﻿@model BiTech.LabTest.Models.ViewModels.Student.SingleQuestion_String_MultiChoices_ViewModel
+
+
+<div class="single-question-div">
+    <div>
+        <h4>Câu @(Model.STT) (@(Model.Score.Length > 0 ? Model.Score.ToString() + " Điểm" : "")): @(Model.Content) (Điền khuyết)</h4>
+    </div>
+    <ul class="">
+        @foreach (var item in Model.PossibleAnswerList)
+        {
+            <li>
+                <input type="text" id="@Model.STT-@item.STT" name="Answer-@Model.STT" value="" />
+                @Html.LabelFor(model => model.Content, item.Content, new { @for = Model.STT + "-" + item.STT })
+            </li>
+        }
+    </ul>
+</div>
+
+

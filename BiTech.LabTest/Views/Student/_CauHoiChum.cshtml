@@ -1,0 +1,32 @@
+﻿@using BiTech.LabTest.Models.ViewModels
+@model Student.GroupQuestionViewModel
+
+<div class="group-question-div">
+    <div class="group-question-div-title">
+        <h4>Câu chùm @Model.Content (cho @Model.SingleQuestionsList.Count câu sau)</h4>
+    </div>
+    @foreach (var qvm in Model.SingleQuestionsList)
+    {
+        <div>
+            @switch ((qvm as Student.QuestionObjectViewModel).QuestionType)
+                {
+                    case Student.QuestionTypeEnum.Quiz:
+                    case Student.QuestionTypeEnum.Underline:
+                        Html.RenderPartial("_TracNghiem1LuaChon", (Student.SingleQuestion_String_OneChoice_ViewModel)qvm);
+                        break;
+                    case Student.QuestionTypeEnum.QuizN:
+                    case Student.QuestionTypeEnum.TrueFalse:
+                        Html.RenderPartial("_TracNghiemNhieuLuaChon", (Student.SingleQuestion_Bool_MultiChoices_ViewModel)qvm);
+                        break;
+                    case Student.QuestionTypeEnum.Fill:
+                        Html.RenderPartial("_TracNghiemDienKhuyet", (Student.SingleQuestion_String_MultiChoices_ViewModel)qvm);
+                        break;
+                    case Student.QuestionTypeEnum.Matching:
+                        Html.RenderPartial("_TracNghiemNoiCheo", (Student.SingleQuestion_String_MultiChoices_ViewModel)qvm);
+                        break;
+
+                }
+        </div>
+    }
+</div>
+

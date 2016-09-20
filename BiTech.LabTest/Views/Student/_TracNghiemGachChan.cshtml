@@ -3,9 +3,9 @@
 
 <div class="single-question-div">
     <div>
-        <h4>Câu @(Model.STT) (@(Model.Score.Length > 0 ? Model.Score.ToString() + " Điểm" : "")): @(Model.Content) (1 lựa chọn)</h4>
+        <h4>Câu @(Model.STT) (@(Model.Score.Length > 0 ? Model.Score.ToString() + " Điểm" : "")): @(Model.Content) (gạch chân)</h4>
     </div>
-    <ul class="DoTest_ul">
+    <ul class="">
         @foreach (var item in Model.PossibleAnswerList)
         {
             <li>

@@ -58,6 +58,7 @@
     <Compile Include="Interfaces\ITeacherEngine.cs" />
     <Compile Include="Models\IModel.cs" />
     <Compile Include="Models\TestData.cs" />
+    <Compile Include="Models\TestResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Respository\EntityRepository.cs" />
     <Compile Include="Respository\IEntityRepository.cs" />

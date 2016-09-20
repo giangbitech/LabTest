@@ -394,7 +394,12 @@
     <Content Include="Views\Student\DoTest.cshtml" />
     <Content Include="Views\Student\_TracNghiem1LuaChon.cshtml" />
     <Content Include="Views\Student\_TracNghiemNhieuLuaChon.cshtml" />
-    <Content Include="Views\Student\_TracNghiemToanBoLuaChon.cshtml" />
+    <Content Include="Views\Student\_TracNghiemDienKhuyet.cshtml" />
+    <Content Include="Views\Student\_TracNghiemNoiCheo.cshtml" />
+    <Content Include="Views\Student\_CauHoiChum.cshtml" />
+    <Content Include="Views\Student\_TracNghiemDungSai.cshtml" />
+    <Content Include="Views\Student\_TracNghiemGachChan.cshtml" />
+    <Content Include="Views\Student\FinishTest.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

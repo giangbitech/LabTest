@@ -18,18 +18,7 @@ namespace BiTech.LabTest.Models.ViewModels
             [Required(ErrorMessage = "Vui lòng điền lớp học của bạn")]
             public string Class { get; set; }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public class TestViewModel
-        {
-
-            public TestResultViewModel TestResult { get; set; }
-            public TestDataViewModel TestData { get; set; }
-        }
-
-
+        
         #region Test Data ViewModels
         /// <summary>
         /// 
@@ -50,6 +39,7 @@ namespace BiTech.LabTest.Models.ViewModels
             public string TestGroupChoose { get; set; }
 
             public string Base64Code { get; set; }
+            public string Base64Data { get; set; }
 
             public List<TestGroupViewModel> TestGroupList { get; set; }
         }
@@ -209,62 +199,6 @@ namespace BiTech.LabTest.Models.ViewModels
             public string ID { get; set; }
 
             public bool isMixable { get; set; }
-        }
-        #endregion
-
-        #region Test Result ViewModels
-        /// <summary>
-        /// 
-        /// </summary>
-        public class TestResultViewModel
-        {
-            public string StudentClass { get; set; }
-
-            public string StudentIPAdd { get; set; }
-
-            public string StudentName { get; set; }
-
-            public string TestGroupChoose { get; set; }
-
-            public List<TestGroupResultViewModel> GroupList { get; set; }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public class TestGroupResultViewModel
-        {
-            public string GroupName { get; set; }
-
-            public List<QuestionResultViewModel> QuestionList { get; set; }
-
-            public TestGroupResultViewModel()
-            {
-                QuestionList = new List<QuestionResultViewModel>();
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public class QuestionResultViewModel
-        {
-            public List<AnswerResultViewModel> Answer { get; set; }
-
-            public string ID { get; set; }
-
-            public string STT { get; set; }
-
-            public QuestionResultViewModel()
-            {
-                Answer = new List<AnswerResultViewModel>();
-            }
-        }
-
-        public class AnswerResultViewModel
-        {
-
-            public string Content { get; set; }
         }
         #endregion
 

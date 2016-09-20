@@ -3,15 +3,15 @@
 
 <div class="single-question-div">
     <div>
-        <h4>Câu @(Model.STT) (@(Model.Score.Length > 0 ? Model.Score.ToString() + " Điểm" : "")): @(Model.Content) (Nhiều lựa chọn)</h4>
+        <h4>Câu @(Model.STT) (@(Model.Score.Length > 0 ? Model.Score.ToString() + " Điểm" : "")): @(Model.Content) (Chọn câu đúng)</h4>
     </div>
     <ul class="">
         @foreach (var item in Model.PossibleAnswerList)
         {
             <li>
                 <input type="checkbox" id="@Model.STT-@item.STT" name="Answer-@Model.STT" value="@item.STT" />
-                                @Html.LabelFor(model => model.Content, item.Content, new { @for = Model.STT + "-" + item.STT })
-                                <div class="checkboxMultiQuiz"></div>
+                @Html.LabelFor(model => model.Content, item.Content, new { @for = Model.STT + "-" + item.STT })
+                <div class="checkboxTrueFalse"><p></p></div>
             </li>
         }
     </ul>

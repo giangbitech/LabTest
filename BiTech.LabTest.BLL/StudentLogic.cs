@@ -21,12 +21,26 @@ namespace BiTech.LabTest.BLL
             Database = new Database(connectionString, databaseName);
             
         }
-
+        /// <summary>
+        /// Lấy bài thi
+        /// </summary>
+        /// <param name="testData"></param>
+        /// <returns></returns>
         public TestData GetTest(string testId)
         {
             this.TestDataRepository = new EntityRepository<TestData>(Database, "testdata");
 
             return TestDataRepository.GetById(testId);
+        }
+
+        /// <summary>
+        /// Lưu kết quả thi của HS
+        /// </summary>
+        /// <param name="testResult"></param>
+        public void SaveTestResult(TestResult testResult)
+        {
+            var TestResultRepository = new EntityRepository<TestResult>(Database, "TestData");
+            TestResultRepository.Insert(testResult);
         }
     }
 }

@@ -7,8 +7,8 @@
 <div id="timer" style="display: block; position: absolute;" class="timer-fix">
     <div class="form-clock">
         <form id="clock">
-            <span> Thời gian còn lại: </span>
-
+            <span>@LanguageConfig.Dictionary["Student_DoTest_Time"]</span>
+            <span id="testTimer"></span>
         </form>
     </div>
 </div>
@@ -37,7 +37,6 @@
                                 <td colspan="2">Lớp @Model.StudentClass</td>
                             </tr>
                         </table>
-                        @Model.StudentIPAdd
                     </center>
                 </div>
             </div>
@@ -48,6 +47,8 @@
             @using (Html.BeginForm("DoneTest", "Student", FormMethod.Post, new { id = "DoTestForm" }))
             {
                 @Html.HiddenFor(m => m.Base64Code);
+                @Html.HiddenFor(m => m.Base64Data);
+                @Html.HiddenFor(m => m.StudentIPAdd);
                 @*Chọn phần thi - Test Group Choosing*@
                 <div class="col-md-6 col-md-offset-3">
                     <table class="table table-striped table-bordered">
@@ -84,30 +85,38 @@
                         <div>
 
                             <!--Xuất từng phần-->
-                            @foreach (var gvm in Model.TestGroupList)
+                            @foreach (var groupQuestionVM in Model.TestGroupList)
                             {
                                 <div class="do-test-testGroup-div ">
                                     <div>
-                                        <h2>@gvm.Title</h2>
+                                        <h2>@groupQuestionVM.Title</h2>
                                     </div>
                                     @*Xuất trắc nghiệm - print quiz*@
-                                    @foreach (var qvm in gvm.QuestionsList)
+                                    @foreach (var questionVM in groupQuestionVM.QuestionsList)
                                     {
                                         <div>
-                                            @switch ((qvm as Student.QuestionObjectViewModel).QuestionType)
+                                            @switch ((questionVM as Student.QuestionObjectViewModel).QuestionType)
                                             {
                                                 case Student.QuestionTypeEnum.Quiz:
+                                                    Html.RenderPartial("_TracNghiem1LuaChon", (Student.SingleQuestion_String_OneChoice_ViewModel)questionVM);
+                                                    break;
                                                 case Student.QuestionTypeEnum.Underline:
-                                                    Html.RenderPartial("_TracNghiem1LuaChon", (Student.SingleQuestion_String_OneChoice_ViewModel)qvm);
+                                                    Html.RenderPartial("_TracNghiemGachChan", (Student.SingleQuestion_String_OneChoice_ViewModel)questionVM);
                                                     break;
                                                 case Student.QuestionTypeEnum.QuizN:
+                                                    Html.RenderPartial("_TracNghiemNhieuLuaChon", (Student.SingleQuestion_Bool_MultiChoices_ViewModel)questionVM);
+                                                    break;
                                                 case Student.QuestionTypeEnum.TrueFalse:
-                                                    Html.RenderPartial("_TracNghiemNhieuLuaChon", (Student.SingleQuestion_Bool_MultiChoices_ViewModel)qvm);
+                                                    Html.RenderPartial("_TracNghiemDungSai", (Student.SingleQuestion_Bool_MultiChoices_ViewModel)questionVM);
+                                                    break;
+                                                case Student.QuestionTypeEnum.Fill:
+                                                    Html.RenderPartial("_TracNghiemDienKhuyet", (Student.SingleQuestion_String_MultiChoices_ViewModel)questionVM);
                                                     break;
                                                 case Student.QuestionTypeEnum.Matching:
-                                                case Student.QuestionTypeEnum.Fill:
+                                                    Html.RenderPartial("_TracNghiemNoiCheo", (Student.SingleQuestion_String_MultiChoices_ViewModel)questionVM);
                                                     break;
                                                 case Student.QuestionTypeEnum.Group:
+                                                    Html.RenderPartial("_CauHoiChum", (Student.GroupQuestionViewModel)questionVM);
                                                     break;
 
                                             }
@@ -130,18 +139,14 @@
         </div>
     </div>
 </div>
-@ViewBag.StudentIPAdd
-
-@using (Ajax.BeginForm("DoneTestX", "Student", null, new AjaxOptions { OnSuccess = "NhanDeThiThanhCong" }, new { id = "DoTestForm" }))
-{
-
-    <input id="btnDoneTestx" type="submit" value="@LanguageConfig.Dictionary["Student_Done_Test"]"
-           class="btn btn-primary btn-lg">
-}
+<div name="divHrefB" style="height: 0px;width: 0px;overflow:hidden;">
+    <a id="btnKeepSession"
+       href="~/Student/KeepSession"
+       data-ajax="true"></a>
+</div>
 
 <script>
-    function NhanDeThiThanhCong(response) {
-    }
+    setInterval(function () { document.getElementById('btnKeepSession').click(); }, 30000);
 </script>
 
 @section scripts{
