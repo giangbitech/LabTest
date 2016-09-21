@@ -37,6 +37,8 @@ namespace BiTech.LabTest.Controllers
             if (Session["Score"] != null)
                 return RedirectToAction("FinishTest");
 
+            string br = Request.Browser.Browser;
+
             return RedirectToAction("JoinTest");
         }
 

@@ -10,11 +10,8 @@
     <a href="@Url.Action("ChangeName", "Student")" class="btn btn-primary btn-lg">@LanguageConfig.Dictionary["Student_Change_Name"]</a>
     <input id="btnTrigger" value="Do Test" class="btn btn-primary btn-lg"/>
 </center>
-<div name="divHrefB" style="height: 0px;width: 0px;overflow:hidden;">
-    <a id="btnKeepSession"
-       href="~/Student/KeepSession"
-       data-ajax="true"></a>
-</div>
+
+@{Html.RenderPartial("_KeepSession");}
 
 @section scripts{
     <script src="~/bower_components/Simple-Ajax-Uploader-master/SimpleAjaxUploader.min.js"></script>
@@ -49,8 +46,6 @@
         $("#btnTrigger").on('click', function () {
             $("#DoTestForm").submit();
         });
-        setInterval(function () { document.getElementById('btnKeepSession').click(); }, 30000);
-
     </script>
 }
 
