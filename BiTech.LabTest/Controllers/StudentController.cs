@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Web.Security;
 using static BiTech.LabTest.Models.ViewModels.Student;
 
 namespace BiTech.LabTest.Controllers
@@ -73,6 +74,10 @@ namespace BiTech.LabTest.Controllers
         [ActionName("JoinTest")]
         public ActionResult DoJoinTest(StudentJoinTestViewModel viewModel)
         {
+            if (HttpContext.Response.Cookies.Get("fullname").Value != null)
+            {
+                Session["FullName"] = HttpContext.Response.Cookies.Get("fullname").Value;
+            }
             //Nếu có điểm rồi không cho thi lại
             if (Session["Score"] != null)
                 return RedirectToAction("FinishTest");
@@ -82,6 +87,13 @@ namespace BiTech.LabTest.Controllers
                 Session["FullName"] = viewModel.FullName;
                 Session["Class"] = viewModel.Class;
                 Session["IsTestStarted"] = false;
+
+                var nameCookie = new HttpCookie("fullname", viewModel.FullName);
+                nameCookie.Expires.AddDays(365);
+                HttpContext.Response.SetCookie(nameCookie);
+                var classCookie = new HttpCookie("class", viewModel.Class);
+                classCookie.Expires.AddDays(365);
+                HttpContext.Response.SetCookie(classCookie);
 
                 CurrentStudentTestStep = StudentTestStepEnum.WaitingTest;
                 return RedirectToAction("WaitingScreen");
@@ -183,7 +195,7 @@ namespace BiTech.LabTest.Controllers
                 testGroup.QuestionsList = new List<object>();
 
                 #region Câu Trắc Nghiệm - Quiz Question
-                                // lấy câu hỏi trắc nghiệm đơn - get single quiz
+                // lấy câu hỏi trắc nghiệm đơn - get single quiz
                 for (int j = 0; j < testDataInJson["test"]["groups"][i]["quiz"]["qSingle"].Count(); j++)
                 {
                     List<PossibleAnswerViewModel> possibleAnswerList = new List<PossibleAnswerViewModel>();
@@ -992,6 +1004,7 @@ namespace BiTech.LabTest.Controllers
             {
                 Session["FullName"] = "";
                 Session["Class"] = "";
+                HttpContext.Response.Cookies.Remove("fullname");
                 return RedirectToAction("JoinTest");
 
             }
