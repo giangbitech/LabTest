@@ -7,10 +7,9 @@
     <h2>Vui lòng chờ giữ máy, chờ Giáo viên mở đề</h2>
 </center>
 <center>
-    <a href="@Url.Action("ChangeName", "Student")" class="btn btn-primary btn-lg">@LanguageConfig.Dictionary["Student_Change_Name"]</a>
+    <a href="@Url.Action("JoinTest", "Student",new { q = "change-name"} )" class="btn btn-primary btn-lg">@LanguageConfig.Dictionary["Student_Change_Name"]</a>
     <input id="btnTrigger" value="Do Test" class="btn btn-primary btn-lg"/>
 </center>
-
 @{Html.RenderPartial("_KeepSession");}
 
 @section scripts{

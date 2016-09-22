@@ -81,7 +81,7 @@
                 @*Nội dung thi - Test*@
 
                 <div class="col-md-6 col-md-offset-3">
-                    <div class="">
+                    <div class="" id="TestDataPartDiv">
                         <div>
 
                             <!--Xuất từng phần-->
@@ -143,7 +143,22 @@
 
 @section scripts{
     <script>
-        function ThanhCong(response) {
-        }
+        $(document).ready(function () {
+            $('#DoTestForm input').change(function () {
+                var queryString = $('#DoTestForm').serialize();
+                $.ajax({
+                    url: "BackupTest",
+                    type: "POST",
+                    data: queryString,
+                    success: function (data, textStatus, jqXHR) {
+
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+
+                    }
+                });
+            });
+        });
+
     </script>
 }

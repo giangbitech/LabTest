@@ -38,8 +38,9 @@ namespace BiTech.LabTest.DAL.Respository
             throw new NotImplementedException();
         }
 
-        public bool Update(T entity)
+        public bool Update(T entity, string Id)
         {
+            entity.Id = new ObjectId(Id);
             var updateResult = DatabaseCollection.ReplaceOne<T>(m => m.Id == entity.Id, entity);
             return (updateResult.ModifiedCount > 0);
         }

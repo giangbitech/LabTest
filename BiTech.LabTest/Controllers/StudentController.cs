@@ -12,6 +12,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Security;
+using static BiTech.LabTest.DAL.Models.TestData;
 using static BiTech.LabTest.Models.ViewModels.Student;
 
 namespace BiTech.LabTest.Controllers
@@ -21,6 +22,9 @@ namespace BiTech.LabTest.Controllers
         public StudentLogic _StudentLogic { get; set; }
 
         public StudentTestStepEnum CurrentStudentTestStep { get; set; }
+
+        private string STUDENT_INFO_COOKIE_NAME = "StudentInfoCookie";
+        private string STUDENT_TEST_RESULT_ID_COOKIE_NAME = "StudentTestResultID";
 
         public StudentController()
         {
@@ -34,12 +38,6 @@ namespace BiTech.LabTest.Controllers
         /// <returns></returns>
         public ActionResult Index()
         {
-            //Nếu có điểm rồi không cho thi lại
-            if (Session["Score"] != null)
-                return RedirectToAction("FinishTest");
-
-            string br = Request.Browser.Browser;
-
             return RedirectToAction("JoinTest");
         }
 
@@ -49,15 +47,65 @@ namespace BiTech.LabTest.Controllers
         /// Nếu có điểm rồi thì chuyến sang trang kết quả
         /// </summary>
         /// <returns></returns>
-        public ActionResult JoinTest()
+        public ActionResult JoinTest(string changeName)
         {
+            if (this.ControllerContext.HttpContext.Request.Cookies.AllKeys.Contains(STUDENT_TEST_RESULT_ID_COOKIE_NAME))
+            {
+                StudentInfoCookieModel studentIC = new StudentInfoCookieModel();
+                HttpCookie cookie = this.ControllerContext.HttpContext.Request.Cookies[STUDENT_TEST_RESULT_ID_COOKIE_NAME];
+                string testResultID = cookie.Value;
+                _StudentLogic = new StudentLogic();
+                TestResult testResult = _StudentLogic.GetTestResult(testResultID);
+                string aa = testResult.StudentName;
+            }
+
+            var testDataId = Session["TestDataId"];
+
             //Nếu có điểm rồi không cho thi lại
             if (Session["Score"] != null)
                 return RedirectToAction("FinishTest");
 
+            // Nếu đang thi mà thí sinh khong có tên thì không được thi.
+            if (CurrentStudentTestStep == StudentTestStepEnum.DoingTest && (Session["FullName"] == null || Session["Class"] == null))
+            {
+                return RedirectToAction("WaitingScreen");
+            }
+
+            //Nếu đang thi và có tên lẫn lớp thì vào thi
+            if (CurrentStudentTestStep == StudentTestStepEnum.DoingTest && (Session["FullName"] != null && Session["Class"] != null) && testDataId != null)
+            {
+                return RedirectToAction("DoTest");
+            }
+
+            //Nếu đang thi và có tên lẫn lớp thì vào thi
+            if (CurrentStudentTestStep == StudentTestStepEnum.DoingTest && (Session["FullName"] != null && Session["Class"] != null) && testDataId == null)
+            {
+                return RedirectToAction("WaitingScreen");
+            }
+
+            // Kiểm tra nhập thông tin thí sinh
+            if (string.IsNullOrEmpty(changeName)
+                ||
+                (Session["FullName"] == null || Session["Class"] == null))
+            {
+                Session["FullName"] = Session["Class"] = null;
+                return View();
+            }
+
+            // Kiểm tra trạng thái thi
+            _StudentLogic = new StudentLogic();
+            if (_StudentLogic.GetTestStep(testDataId.ToString()) == TestStepEnum.Waiting)
+            {
+                Session["FullName"] = null;
+                Session["Class"] = null;
+                removeStudentInfoCookie();
+                return RedirectToAction("JoinTest");
+
+            }
+
             // Thí sinh đã nhập thông tin
             // Chưa thi thì chuyển vào Waiting
-            if (CurrentStudentTestStep == StudentTestStepEnum.WaitingTest)
+            if (CurrentStudentTestStep == StudentTestStepEnum.WaitingTest) //|| Session["fullname"] != null
             {
                 return RedirectToAction("WaitingScreen");
             }
@@ -74,10 +122,6 @@ namespace BiTech.LabTest.Controllers
         [ActionName("JoinTest")]
         public ActionResult DoJoinTest(StudentJoinTestViewModel viewModel)
         {
-            if (HttpContext.Response.Cookies.Get("fullname").Value != null)
-            {
-                Session["FullName"] = HttpContext.Response.Cookies.Get("fullname").Value;
-            }
             //Nếu có điểm rồi không cho thi lại
             if (Session["Score"] != null)
                 return RedirectToAction("FinishTest");
@@ -86,14 +130,6 @@ namespace BiTech.LabTest.Controllers
             {
                 Session["FullName"] = viewModel.FullName;
                 Session["Class"] = viewModel.Class;
-                Session["IsTestStarted"] = false;
-
-                var nameCookie = new HttpCookie("fullname", viewModel.FullName);
-                nameCookie.Expires.AddDays(365);
-                HttpContext.Response.SetCookie(nameCookie);
-                var classCookie = new HttpCookie("class", viewModel.Class);
-                classCookie.Expires.AddDays(365);
-                HttpContext.Response.SetCookie(classCookie);
 
                 CurrentStudentTestStep = StudentTestStepEnum.WaitingTest;
                 return RedirectToAction("WaitingScreen");
@@ -113,7 +149,7 @@ namespace BiTech.LabTest.Controllers
                 return RedirectToAction("FinishTest");
 
             // Chưa nhập thông tin thí sinh
-            if (Session["FullName"] == null || Session["Class"] == null || Session["IsTestStarted"] == null)
+            if (Session["FullName"] == null || Session["Class"] == null)
             {
                 return RedirectToAction("JoinTest");
             }
@@ -121,6 +157,7 @@ namespace BiTech.LabTest.Controllers
             {
                 return RedirectToAction("JoinTest");
             }
+
             //Đã bắt đầu thi thì vào thi luôn
             if (CurrentStudentTestStep == StudentTestStepEnum.DoingTest)
             {
@@ -146,7 +183,6 @@ namespace BiTech.LabTest.Controllers
             if (Session["Score"] != null)
                 return RedirectToAction("FinishTest");
 
-            Session["IsTestStarted"] = true;
             Session["TestDataId"] = testDataId;
 
             return Json(new { testDataId = testDataId });
@@ -161,6 +197,8 @@ namespace BiTech.LabTest.Controllers
             //Nếu có điểm rồi không cho thi lại
             if (Session["Score"] != null)
                 return RedirectToAction("FinishTest");
+            if (Session["FullName"] == null || Session["Class"] == null)
+                return RedirectToAction("JoinTest");
 
             //Nếu chưa có Test Data Id thì vào đăng ký lại
             if (Session["TestDataId"] == null)
@@ -771,11 +809,14 @@ namespace BiTech.LabTest.Controllers
                     }
                 }
             }
-            result = Base64Encode(result);
             #endregion
 
-            var testDataMixed = Base64Encode(JsonConvert.SerializeObject(testGroupList));
+
             #region Inits Test Info
+            var testDataMixed_json = JsonConvert.SerializeObject(testGroupList);
+            var testDataMixed_json_base64 = Base64Encode(testDataMixed_json);
+            result = Base64Encode(result);
+
             var viewModel = new TestDataViewModel
             {
                 SchoolName = testDataInJson["test"]["header"]["name"]?.ToString(),
@@ -790,9 +831,30 @@ namespace BiTech.LabTest.Controllers
                 StudentIPAdd = IP,
                 TestGroupChoose = "",
                 Base64Code = result,
-                Base64Data = testDataMixed,
+                Base64Data = testDataMixed_json_base64,
                 TestGroupList = testGroupList
             };
+            #endregion
+
+            #region Backup lần đầu thông tin bài làm            
+            List<string> studentAnswersList = new List<string>(); //đáp án của thí sinh            
+            TestResult testResult = new TestResult();
+            testResult.TestDataID = Session["TestDataId"].ToString();
+            testResult.StudentName = Session["FullName"].ToString();
+            testResult.StudentClass = Session["Class"].ToString();
+            testResult.StudentIPAdd = IP;
+            testResult.TestGroupChoose = "";
+            testResult.StudentTestResult = studentAnswersList;
+            testResult.StudentTestData = testDataMixed_json;
+            testResult.Score = -1;
+            testResult.RecordDateTime = DateTime.Now;
+            _StudentLogic = new StudentLogic();
+            string testResultID = _StudentLogic.SaveTestResult(testResult);
+            Session["TestResultID"] = testResultID;
+
+            HttpCookie cookie = new HttpCookie(STUDENT_TEST_RESULT_ID_COOKIE_NAME);
+            cookie.Value = testResultID;
+            this.ControllerContext.HttpContext.Response.Cookies.Add(cookie);
             #endregion
 
             return View(viewModel);
@@ -926,7 +988,7 @@ namespace BiTech.LabTest.Controllers
                                     }
                                     else
                                     {
-                                        studentAnswersList.Add("Answer-" + questionSTT + "-QuizN_TrueFalse+" + studentAnswerValue);
+                                        studentAnswersList.Add("Answer-" + questionSTT + "-TrueFalse+" + studentAnswerValue);
                                     }
                                 }
                             }
@@ -935,35 +997,118 @@ namespace BiTech.LabTest.Controllers
                 }
             }
 
-            TestResult testResult = new TestResult();
-
-            testResult.TestDataID = Session["TestDataId"].ToString();
-            testResult.StudentName = Session["FullName"].ToString();
-            testResult.StudentClass = Session["Class"].ToString();
-            testResult.StudentIPAdd = formCollection["StudentIPAdd"];
-            testResult.TestGroupChoose = formCollection["TestGroupChoose"];
-            testResult.StudentTestResult = studentAnswersList;
-            testResult.StudentTestData = Base64Data;
-            testResult.Score = score;
-            testResult.RecordDateTime = DateTime.Now;
-            _StudentLogic = new StudentLogic();
-            _StudentLogic.SaveTestResult(testResult);
-
+            var testResultID_Session = Session["TestResultID"];
+            if (testResultID_Session != null)
+            {
+                var testResrultID = testResultID_Session.ToString();
+                TestResult testResult = new TestResult();
+                testResult.TestDataID = Session["TestDataId"].ToString();
+                testResult.StudentName = Session["FullName"].ToString();
+                testResult.StudentClass = Session["Class"].ToString();
+                testResult.StudentIPAdd = formCollection["StudentIPAdd"];
+                testResult.TestGroupChoose = formCollection["TestGroupChoose"] != null ? formCollection["TestGroupChoose"] : "";
+                testResult.StudentTestResult = studentAnswersList;
+                testResult.StudentTestData = Base64Data;
+                testResult.Score = score;
+                testResult.RecordDateTime = DateTime.Now;
+                _StudentLogic = new StudentLogic();
+                _StudentLogic.UpdateTestResult(testResult, testResrultID);
+            }
             Session["Score"] = score.ToString();
 
             return RedirectToAction("FinishTest");
         }
 
         /// <summary>
+        /// Mỗi lần thí sinh chọn đáp án là update backup lại
+        /// </summary>
+        /// <param name="formCollection"></param>
+        public void BackupTest(FormCollection formCollection)
+        {
+            List<string> studentAnswersList = new List<string>(); //đáp án của thí sinh
+
+            var Base64Code = formCollection["Base64Code"];// đáp án
+            var Base64Data = Base64Decode(formCollection["Base64Data"]);// đề thi
+
+            var testGroupHints = Base64Decode(Base64Code).Split(new char[] { '#' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int groupID = 0; groupID < testGroupHints.Length; groupID++)
+            {
+                //lấy thông tin phần thi và dữ liệu: [0] là thong tin, [1] là dữ liệu
+                var groupParts = testGroupHints[groupID].Split('@');
+
+                //chia thông tin phần thi thành tên và kiểu thi (1 là chung, 0 là riêng)
+                var groupInfos = groupParts[0].Split('!');
+
+                //kiểm tra chọn phần thi của HS để tính điểm ("1" là phần chung hoặc "TestGroupChoose" là phần được chọn)
+                if (groupInfos[1].Equals("1") || groupInfos[0].Equals(formCollection["TestGroupChoose"]))
+                {
+                    var hints = groupParts[1].Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                    for (int i = 0; i < hints.Length; i++)
+                    {
+                        var questionSTT = hints[i].Split(new char[] { '-' }, 2, StringSplitOptions.RemoveEmptyEntries)[0].Split(new char[] { ')' })[1];
+                        var studentAnswerValue = formCollection["Answer-" + questionSTT];
+                        if (studentAnswerValue == null)
+                        {
+                            studentAnswersList.Add("Answer-" + questionSTT + "-NULL");
+                        }
+                        else
+                        {
+                            studentAnswersList.Add("Answer-" + questionSTT + "+" + studentAnswerValue);
+                        }
+                    }
+                }
+            }
+
+            var testResultID_Session = Session["TestResultID"];
+            if (testResultID_Session != null)
+            {
+                var testResrultID = testResultID_Session.ToString();
+                TestResult testResult = new TestResult();
+                testResult.TestDataID = Session["TestDataId"].ToString();
+                testResult.StudentName = Session["FullName"].ToString();
+                testResult.StudentClass = Session["Class"].ToString();
+                testResult.StudentIPAdd = formCollection["StudentIPAdd"];
+                testResult.TestGroupChoose = formCollection["TestGroupChoose"] != null ? formCollection["TestGroupChoose"] : "";
+                testResult.StudentTestResult = studentAnswersList;
+                testResult.StudentTestData = Base64Data;
+                testResult.Score = -1;
+                testResult.RecordDateTime = DateTime.Now;
+                _StudentLogic = new StudentLogic();
+                _StudentLogic.UpdateTestResult(testResult, testResrultID);
+            }
+        }
+
+
+        /// <summary>
         /// Hoàn thành bài thi
         /// Chạy ra giao điện kết quả
         /// </summary>
         /// <returns></returns>
-        public ActionResult FinishTest()
+        public ActionResult FinishTest(FormCollection formCollection)
         {
-            ViewBag.StudentName = Session["FullName"].ToString();
-            ViewBag.ClassName = Session["Class"].ToString();
-            ViewBag.Score = Session["Score"].ToString();
+            var testDataId = Session["TestDataId"];
+
+            if (testDataId == null)
+            {
+                return RedirectToAction("WaitingScreen");
+            }
+            _StudentLogic = new StudentLogic();
+            var state = _StudentLogic.GetTestStep(testDataId.ToString());
+
+            if (state == TestStepEnum.Finish)
+            {
+                removeStudentInfoCookie();
+                Session["FullName"] = null;
+                Session["Class"] = null;
+                Session["Score"] = null;
+                Session["TestDataId"] = null;
+            }
+            else
+            {
+                ViewBag.StudentName = Session["FullName"].ToString();
+                ViewBag.ClassName = Session["Class"].ToString();
+                ViewBag.Score = Session["Score"].ToString();
+            }
             return View();
         }
 
@@ -981,34 +1126,67 @@ namespace BiTech.LabTest.Controllers
             if (Session["Score"] != null)
                 Session["Score"] = Session["Score"];
 
-            if (Session["IsTestStarted"] != null)
-                Session["IsTestStarted"] = Session["IsTestStarted"];
-
             if (Session["TestDataId"] != null)
                 Session["TestDataId"] = Session["TestDataId"];
-
-            if (Session["IsTestStarted"] != null)
-                Session["IsTestStarted"] = Session["IsTestStarted"];
         }
 
-
         /// <summary>
-        /// Nếu bài thi chưa bắt đầu thì 
-        /// từ Waitingscreen sang joinTest để đổi tên 
+        /// Nếu trang làm bài bị lose focus thì hủy bài thi
         /// </summary>
         /// <returns></returns>
-        public ActionResult ChangeName()
+        public ActionResult OnLoseFocus()
         {
-            //Nếu Chưa thi thì đổi tên được
-            if (!bool.Parse(Session["IsTestStarted"].ToString()))
-            {
-                Session["FullName"] = "";
-                Session["Class"] = "";
-                HttpContext.Response.Cookies.Remove("fullname");
-                return RedirectToAction("JoinTest");
+            return RedirectToAction("JoinTest");
+        }
 
+        /// <summary>
+        /// lấy cookie thông tin học sinh
+        /// </summary>
+        /// <returns>StudentInfoCookieModel</returns>
+        private StudentInfoCookieModel getStudentInfoCookie()
+        {
+            if (this.ControllerContext.HttpContext.Request.Cookies.AllKeys.Contains(STUDENT_INFO_COOKIE_NAME))
+            {
+                StudentInfoCookieModel studentIC = new StudentInfoCookieModel();
+                HttpCookie cookie = this.ControllerContext.HttpContext.Request.Cookies[STUDENT_INFO_COOKIE_NAME];
+                string[] values = cookie.Value.Split('|');
+                if (values.Length == 4)
+                {
+                    studentIC.Name = values[0];
+                    studentIC.Class = values[1];
+                    studentIC.Score = values[2];
+                    studentIC.TestDataID = values[3];
+                }
+                else
+                    return null;
+
+                return studentIC;
             }
-            return RedirectToAction("WaitingScreen");
+            return null;
+        }
+
+        /// <summary>
+        /// lưu cookie thông tin học sinh
+        /// </summary>
+        /// <param name="studentIC"></param>
+        private void saveStudentInfoCookie(StudentInfoCookieModel studentIC)
+        {
+            HttpCookie cookie = new HttpCookie(STUDENT_INFO_COOKIE_NAME);
+            cookie.Value = studentIC.Name + "|" + studentIC.Class + "|" + studentIC.Score + "|" + studentIC.TestDataID;
+            this.ControllerContext.HttpContext.Response.Cookies.Add(cookie);
+        }
+
+        /// <summary>
+        /// xóa cookie thông tin học sinh
+        /// </summary>
+        private void removeStudentInfoCookie()
+        {
+            if (this.ControllerContext.HttpContext.Request.Cookies.AllKeys.Contains(STUDENT_INFO_COOKIE_NAME))
+            {
+                HttpCookie cookie = this.ControllerContext.HttpContext.Request.Cookies[STUDENT_INFO_COOKIE_NAME];
+                cookie.Expires = DateTime.Now.AddDays(-1);
+                this.ControllerContext.HttpContext.Response.Cookies.Add(cookie);
+            }
         }
 
         /// <summary>

@@ -9,7 +9,7 @@
         @foreach (var item in Model.PossibleAnswerList)
         {
             <li>
-                <input type="radio" id="@Model.STT-@item.STT" name="Answer-@Model.STT" value="@item.STT" />
+                <input type="radio" id="@Model.STT-@item.STT" name="Answer-@Model.STT" value="@item.STT" onchange="backup()"/>
                 @Html.LabelFor(model => model.Content, item.Content, new { @for = Model.STT + "-" + item.STT })
                 <div class="check"></div>
             </li>

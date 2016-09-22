@@ -7,13 +7,4 @@
     <h3>Điểm đặt được: <span class="text-primary">@ViewBag.Score</span> </h3>
 </center>
 
-
-<div name="divHrefB" style="height: 0px;width: 0px;overflow:hidden;">
-    <a id="btnKeepSession"
-       href="~/Student/KeepSession"
-       data-ajax="true"></a>
-</div>
-
-<script>
-    setInterval(function () { document.getElementById('btnKeepSession').click(); }, 30000);
-</script>
+@{Html.RenderPartial("_KeepSession");}

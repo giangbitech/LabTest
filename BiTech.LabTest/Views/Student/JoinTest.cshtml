@@ -2,41 +2,39 @@
 
 <div class="row">
     <div class="col-md-6 col-md-offset-3 form-input-full-width">
-        <authentiation mode="Forms">
-            @using (Html.BeginForm("JoinTest", "Student", FormMethod.Post, null))
+        @using (Html.BeginForm("JoinTest", "Student", FormMethod.Post, null))
             {
-                <div class="form-horizontal">
-                    <div class="form-group">
-                        <div class="col-md-3">
-                            <h4>
-                                <label class="control-label" for="FullName">@LanguageConfig.Dictionary["Student_Fill_FullName_Label"]</label>
-                            </h4>
-                        </div>
-                        <div class="col-md-9">
-                            @Html.TextBoxFor(m => m.FullName, new { @class = "form-control text-box single-line input-lg" })
-                            @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
-                        </div>
+            <div class="form-horizontal">
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <h4>
+                            <label class="control-label" for="FullName">@LanguageConfig.Dictionary["Student_Fill_FullName_Label"]</label>
+                        </h4>
                     </div>
-
-                    <div class="form-group">
-                        <div class="col-md-3">
-                            <h4>
-                                <label class="control-label" for="Class">@LanguageConfig.Dictionary["Student_Fill_Class_Label"]</label>
-                            </h4>
-                        </div>
-                        <div class="col-md-9">
-
-                            @Html.TextBoxFor(m => m.Class, new { @class = "form-control text-box single-line input-lg" })
-                            @Html.ValidationMessageFor(m => m.Class, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-md-offset-3 col-md-9">
-                            <input type="submit" value="@LanguageConfig.Dictionary["Student_Join_Test_Button"]" class="btn btn-primary btn-lg">
-                        </div>
+                    <div class="col-md-9">
+                        @Html.TextBoxFor(m => m.FullName, new { @class = "form-control text-box single-line input-lg" })
+                        @Html.ValidationMessageFor(m => m.FullName, "", new { @class = "text-danger" })
                     </div>
                 </div>
-            }
-        </authentiation>
+
+                <div class="form-group">
+                    <div class="col-md-3">
+                        <h4>
+                            <label class="control-label" for="Class">@LanguageConfig.Dictionary["Student_Fill_Class_Label"]</label>
+                        </h4>
+                    </div>
+                    <div class="col-md-9">
+
+                        @Html.TextBoxFor(m => m.Class, new { @class = "form-control text-box single-line input-lg" })
+                        @Html.ValidationMessageFor(m => m.Class, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-offset-3 col-md-9">
+                        <input type="submit" value="@LanguageConfig.Dictionary["Student_Join_Test_Button"]" class="btn btn-primary btn-lg">
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>

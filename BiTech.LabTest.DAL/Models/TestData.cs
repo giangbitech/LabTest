@@ -6,6 +6,7 @@ namespace BiTech.LabTest.DAL.Models
 {
     public class TestData : IModel
     {
+        //TO-DO: "OnWorking" -> "OnProgress "
         public enum TestStepEnum
         {
             Waiting,

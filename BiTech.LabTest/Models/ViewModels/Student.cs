@@ -67,14 +67,7 @@ namespace BiTech.LabTest.Models.ViewModels
 
             //public Question_String_OneChoice_Package Underline { get; set; }
         }
-
-
-        public class QuestionsPackage
-        {
-            //public List<GroupQuestionViewModel> ListOfGroups { get; set; }
-
-            public List<object> QuestionsList { get; set; }
-        }
+        
 
         // <summary>
         // gói câu hỏi 1 lựa chọn
@@ -201,6 +194,20 @@ namespace BiTech.LabTest.Models.ViewModels
             public bool isMixable { get; set; }
         }
         #endregion
+
+        /// <summary>
+        /// Thông tin lưu trong cookie
+        /// </summary>
+        public class StudentInfoCookieModel
+        {
+            public string Name { get; set; }
+
+            public string Class { get; set; }
+
+            public string Score { get; set; }
+
+            public string TestDataID { get; set; }
+        }
 
         public enum QuestionTypeEnum
         {

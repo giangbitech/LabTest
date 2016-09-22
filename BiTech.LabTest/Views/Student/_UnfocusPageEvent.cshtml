@@ -1,0 +1,66 @@
+﻿
+
+
+
+<div name="divHrefBx" style="height: 0px;width: 0px;overflow:hidden;">
+    <a id="btnOnLoseFocus" href="@Url.Action("OnLoseFocus", "Student")" class="btn btn-primary btn-lg"></a>
+</div>
+
+
+<div class="alert alert-danger div-focus-timer" id="divMessage">
+    <span class="span-timer">@LanguageConfig.Dictionary["Student_UnFocus_Warning"]</span><br/>
+    <strong><span id="timespan" class="span-timer"></span></strong>
+</div>
+<script>
+    function onBlur() {
+        countdown();
+    };
+    function onFocus() {
+        cdreset();
+    };
+
+    if (false) { // check for Internet Explorer
+        document.onfocusin = onFocus;
+        document.onfocusout = onBlur;
+    } else {
+        window.onfocus = onFocus;
+        window.onblur = onBlur;
+    }
+
+    ///timer
+    var CCOUNT = 2;
+    var t;
+    var count = 2;
+
+    function cddisplay() {
+        document.getElementById('timespan').innerHTML = count;
+    }
+
+    function countdown() {
+        document.getElementById('divMessage').className = "alert alert-danger div-focus-timer div-focus-timer-show";
+        // starts countdown
+        cddisplay();
+        if (count === 0) {
+            //document.getElementById('btnOnLoseFocus').click();
+        } else {
+            count--;
+            t = setTimeout(countdown, 1000);
+        }
+    }
+
+    function cdpause() {
+        // pauses countdown
+        clearTimeout(t);
+    }
+
+    function cdreset() {
+        // resets countdown
+        cdpause();
+        count = CCOUNT;
+        document.getElementById('timespan').innerHTML = "";
+        document.getElementById('divMessage').className = "alert alert-danger div-focus-timer div-focus-timer-hide";
+    }
+
+</script>
+
+

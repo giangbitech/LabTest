@@ -401,6 +401,7 @@
     <Content Include="Views\Student\_TracNghiemGachChan.cshtml" />
     <Content Include="Views\Student\FinishTest.cshtml" />
     <Content Include="Views\Student\_KeepSession.cshtml" />
+    <Content Include="Views\Student\_UnfocusPageEvent.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

@@ -28,8 +28,9 @@ namespace BiTech.LabTest.DAL.Respository
         /// Cập nhật entity trong database
         /// </summary>
         /// <param name="entity">Entity cần cập nhật</param>
+        /// <param name="Id">Id của Entity</param>
         /// <returns>Kết quả cập nhật entity</returns>
-        bool Update(IEntity entity);
+        bool Update(IEntity entity, string Id);
 
         /// <summary>
         /// Lấy entity ra bằng ID
