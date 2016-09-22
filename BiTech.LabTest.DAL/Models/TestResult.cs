@@ -50,6 +50,11 @@ namespace BiTech.LabTest.DAL.Models
         public string StudentTestData { get; set; }
 
         /// <summary>
+        /// Đáp án của đề thi
+        /// </summary>
+        public string TestHints { get; set; }
+
+        /// <summary>
         /// Kết quả thi của học sinh
         /// Answer-[stt câu]-[tên loại câu hỏi]+[đáp án chọn]
         /// 
