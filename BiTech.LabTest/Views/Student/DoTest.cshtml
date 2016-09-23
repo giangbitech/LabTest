@@ -62,15 +62,16 @@
                                     </td>
                                 }
                             }
-                            @foreach (var testGroup in Model.TestGroupList)
+                            @for (int i = 1; i <= Model.TestGroupList.Count; i++)
                             {
-                                if (!testGroup.isForAll)
+                                if (!Model.TestGroupList[i-1].isForAll)
                                 {
                                     <td colspan="2">
 
-                                        @Html.RadioButtonFor(m => m.TestGroupChoose, testGroup.Title)
-                                        <!--input type="radio" name="TestGroupChoose" id="opt-testGroup.Title" value="testGroup.Title">-->
-                                        <label>@testGroup.Title</label>
+                                        <input type="radio" id="TestGroup-@i.ToString()" name="TestGroupChoose" value="TestGroup-@i.ToString()" />                                        
+                                        <!--input type="radio" name="TestGroupChoose" id="opt-testGroup.Title" value="testGroup.Title">
+                                            Html.RadioButtonFor(m => m.TestGroupChoose, Model.TestGroupList[i].Title, new { id = "TestGroup"+ i.ToString() })-->
+                                        <label for="TestGroup-@i.ToString()">@Model.TestGroupList[i-1].Title</label>
                                     </td>
                                 }
                             }
@@ -140,6 +141,7 @@
     </div>
 </div>
 @{Html.RenderPartial("_KeepSession");}
+@{Html.RenderPartial("_UnfocusPageEvent");}
 
 @section scripts{
     <script>

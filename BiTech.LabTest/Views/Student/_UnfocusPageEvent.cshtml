@@ -1,22 +1,20 @@
-﻿
+﻿@*<div name="divHrefBx" style="height: 0px;width: 0px;overflow:hidden;">
+        <a id="btnOnLoseFocus" href="@Url.Action("OnLoseFocus", "Student")" class="btn btn-primary btn-lg"></a>
+    </div>
 
 
-
-<div name="divHrefBx" style="height: 0px;width: 0px;overflow:hidden;">
-    <a id="btnOnLoseFocus" href="@Url.Action("OnLoseFocus", "Student")" class="btn btn-primary btn-lg"></a>
-</div>
-
-
-<div class="alert alert-danger div-focus-timer" id="divMessage">
-    <span class="span-timer">@LanguageConfig.Dictionary["Student_UnFocus_Warning"]</span><br/>
-    <strong><span id="timespan" class="span-timer"></span></strong>
-</div>
+    <div class="alert alert-danger div-focus-timer" id="divMessage">
+        <span class="span-timer">@LanguageConfig.Dictionary["Student_UnFocus_Warning"]</span><br/>
+        <strong><span id="timespan" class="span-timer"></span></strong>
+    </div>*@
+<span id="xxxrep"></span>
 <script>
     function onBlur() {
-        countdown();
+        //countdown();
     };
     function onFocus() {
-        cdreset();
+        //cdreset();
+        syncTestData();
     };
 
     if (false) { // check for Internet Explorer
@@ -27,40 +25,77 @@
         window.onblur = onBlur;
     }
 
-    ///timer
-    var CCOUNT = 2;
-    var t;
-    var count = 2;
+    //load lại bài thi đã được lưu trong csdl
+    function syncTestData() {
+        $.ajax({
+            url: "@Url.Action("GetBackupTestResult")",
+            type: "POST",
+            responseType: 'json',
+            error: function (response) {
 
-    function cddisplay() {
-        document.getElementById('timespan').innerHTML = count;
-    }
+                $("#xxxrep").html(response.responseText)
 
-    function countdown() {
-        document.getElementById('divMessage').className = "alert alert-danger div-focus-timer div-focus-timer-show";
-        // starts countdown
-        cddisplay();
-        if (count === 0) {
-            //document.getElementById('btnOnLoseFocus').click();
-        } else {
-            count--;
-            t = setTimeout(countdown, 1000);
-        }
-    }
+            },
+            success: function (response) {
 
-    function cdpause() {
-        // pauses countdown
-        clearTimeout(t);
-    }
+                var grouppacksx = response[31].split("-");
+                for (var i = 0; i < response.length; i++) {
+                    if (response[i].length > 0) {
+                        //tách câu trả lời
+                        var answerpacks = response[i].split("+");
+                        if (answerpacks.length == 2) {
 
-    function cdreset() {
-        // resets countdown
-        cdpause();
-        count = CCOUNT;
-        document.getElementById('timespan').innerHTML = "";
-        document.getElementById('divMessage').className = "alert alert-danger div-focus-timer div-focus-timer-hide";
+                            //kiểm tra tiền tố Answer-[STT-cau-hoi]
+                            var answerHeader = answerpacks[0].split("-");
+                            if (answerHeader.length == 2) {
+
+                                //Nếu đúng là câu trả lời thì làm tiếp
+                                if (answerHeader[0] == "Answer") {
+
+                                    //Nếu không phải là đáp án chưa chọn thì sync
+                                    if (answerpacks[1] != "NULL") {
+                                        var allChoices = answerpacks[1].split(",");
+
+                                        //Nếu là text thì điền
+                                        if ($("#" + answerHeader[1] + "-1")[0].type == "text") {
+                                            for (var j = 0; j < allChoices.length; j++) {
+                                                $("#" + answerHeader[1] + '-' + (j + 1).toString()).val(allChoices[j]);
+                                            }
+                                        }//nếu còn lại radio-chekcbox thì check
+                                        else if ($("#" + answerHeader[1] + "-1")[0].type == "radio") {
+                                            for (var j = 0; j < allChoices.length; j++) {
+                                                $("#" + answerHeader[1] + '-' + allChoices[j])[0].checked = true;
+                                            }
+                                        }//chekcbox
+                                        else if ($("#" + answerHeader[1] + "-1")[0].type == "checkbox") {
+                                            for (var j = 1; j < 10; j++) {
+                                                $("#xxxrep").html(j.toString() + ($("#" + answerHeader[1] + "-" + j.toString()).length == 0));
+                                                if ($("#" + answerHeader[1] + "-" + j.toString()).length == 0)
+                                                    break;
+                                                $("#" + answerHeader[1] + "-" + j.toString())[0].checked = false;
+                                            }
+                                            for (var j = 0; j < allChoices.length; j++) {
+                                                $("#" + answerHeader[1] + "-" + allChoices[j])[0].checked = true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            //tách test group - phần thi
+                            var grouppacks = response[i].split("-");
+                            //đúng là test group thì chọn lại cho học sinh
+                            if (grouppacks.length == 2) {
+                                if (grouppacks[0] == "TestGroup") {
+                                    $("#" + response[i])[0].click();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
+    window.onload = syncTestData;
 
 </script>
-
-

@@ -18,5 +18,7 @@ namespace BiTech.LabTest.Realtime
         {
             Clients.AllExcept(new string[] { this.Context.ConnectionId }).announceStudentStartTest(testDataId);
         }
+
+
     }
 }

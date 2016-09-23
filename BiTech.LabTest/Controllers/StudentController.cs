@@ -1043,7 +1043,6 @@ namespace BiTech.LabTest.Controllers
             if (string.IsNullOrEmpty(testResultBackup.StudentTestData))
             {
                 List<string> studentAnswersList = new List<string>(); //đáp án của thí sinh    
-                var testResrultID = studentBaseInfo.TestResultID;
                 TestResult testResult = new TestResult();
                 testResult.TestDataID = studentBaseInfo.TestDataID;
                 testResult.StudentName = studentBaseInfo.StudentName;
@@ -1056,7 +1055,7 @@ namespace BiTech.LabTest.Controllers
                 testResult.Score = -1;
                 testResult.RecordDateTime = DateTime.Now;
                 _StudentLogic = new StudentLogic();
-                _StudentLogic.UpdateTestResultTemp(testResult, testResrultID);
+                _StudentLogic.UpdateTestResultTemp(testResult, studentBaseInfo.TestResultID);
 
                 Session[STUDENT_SESSION] = studentBaseInfo;
             }
@@ -1253,21 +1252,19 @@ namespace BiTech.LabTest.Controllers
                 var groupInfos = groupParts[0].Split('!');
 
                 //kiểm tra chọn phần thi của HS để tính điểm ("1" là phần chung hoặc "TestGroupChoose" là phần được chọn)
-                if (groupInfos[1].Equals("1") || groupInfos[0].Equals(formCollection["TestGroupChoose"]))
+
+                var hints = groupParts[1].Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                for (int i = 0; i < hints.Length; i++)
                 {
-                    var hints = groupParts[1].Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                    for (int i = 0; i < hints.Length; i++)
+                    var questionSTT = hints[i].Split(new char[] { '-' }, 2, StringSplitOptions.RemoveEmptyEntries)[0].Split(new char[] { ')' })[1];
+                    var studentAnswerValue = formCollection["Answer-" + questionSTT];
+                    if (studentAnswerValue == null)
                     {
-                        var questionSTT = hints[i].Split(new char[] { '-' }, 2, StringSplitOptions.RemoveEmptyEntries)[0].Split(new char[] { ')' })[1];
-                        var studentAnswerValue = formCollection["Answer-" + questionSTT];
-                        if (studentAnswerValue == null)
-                        {
-                            studentAnswersList.Add("Answer-" + questionSTT + "-NULL");
-                        }
-                        else
-                        {
-                            studentAnswersList.Add("Answer-" + questionSTT + "+" + studentAnswerValue);
-                        }
+                        studentAnswersList.Add("Answer-" + questionSTT + "+NULL");
+                    }
+                    else
+                    {
+                        studentAnswersList.Add("Answer-" + questionSTT + "+" + studentAnswerValue);
                     }
                 }
             }
@@ -1290,6 +1287,27 @@ namespace BiTech.LabTest.Controllers
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="testResultID"></param>
+        /// <returns></returns>
+        public ActionResult GetBackupTestResult()
+        {
+            _StudentLogic = new StudentLogic();
+            var testResult = _StudentLogic.GetTestResultTempByIp(Request.UserHostAddress);
+            if (testResult == null)
+            {
+                return Json(new string[] { "NO" });
+            }
+            if (testResult.StudentTestResult == null)
+            {
+                return Json(new string[] { "NO" });
+            }
+            testResult.StudentTestResult.Add(testResult.TestGroupChoose);
+            var ret = Json(testResult.StudentTestResult);
+            return ret;
+        }
 
         /// <summary>
         /// Hoàn thành bài thi
