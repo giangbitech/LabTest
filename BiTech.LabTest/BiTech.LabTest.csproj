@@ -404,6 +404,7 @@
     <Content Include="Views\Student\_KeepSession.cshtml" />
     <Content Include="Views\Student\_UnfocusPageEvent.cshtml" />
     <Content Include="Views\Student\HoldingScreen.cshtml" />
+    <Content Include="Views\Student\TestSubmitDoTest.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -424,6 +425,10 @@
     <ProjectReference Include="..\BiTech.LabTest.DAL\BiTech.LabTest.DAL.csproj">
       <Project>{CC9AD856-208B-4C31-8D5D-F5B0ED862331}</Project>
       <Name>BiTech.LabTest.DAL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\BiTech.LabTest.DataObject\BiTech.LabTest.DataObject.csproj">
+      <Project>{0c4d6d9a-f82d-441a-8ee8-06d60ea7a7b7}</Project>
+      <Name>BiTech.LabTest.DataObject</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

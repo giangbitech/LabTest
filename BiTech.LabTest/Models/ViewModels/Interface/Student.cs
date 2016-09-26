@@ -36,7 +36,7 @@ namespace BiTech.LabTest.Models.ViewModels.Interface
         string ID { get; set; }
         string Score { get; set; }
         string Content { get; set; }
-        Student.QuestionTypeEnum QuestionType { get; set; }
+        DataObject.ViewModels.StudentViewModel.QuestionTypeEnum QuestionType { get; set; }
         List<IAnswerViewModel> AnswerList { get; set; }
     }
 

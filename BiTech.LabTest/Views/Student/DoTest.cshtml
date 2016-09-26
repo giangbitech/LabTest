@@ -1,5 +1,5 @@
-﻿@using BiTech.LabTest.Models.ViewModels
-@model Student.TestDataViewModel
+﻿@using BiTech.LabTest.DataObject.ViewModels
+@model StudentViewModel.TestDataViewModel
 <script>
 
 
@@ -21,16 +21,16 @@
                     <center>
                         <table class="table table-striped table-bordered">
                             <tr>
-                                <td colspan="2">Trường @Model.SchoolName</td>
-                                <td colspan="2">@Model.TestType</td>
+                                <td colspan="2">Trường @Model.TestInfo.SchoolName</td>
+                                <td colspan="2">@Model.TestInfo.TestType</td>
                             </tr>
                             <tr>
-                                <td colspan="2">Năm học @Model.Year</td>
-                                <td colspan="2"> @Model.Grade</td>
+                                <td colspan="2">Năm học @Model.TestInfo.Year</td>
+                                <td colspan="2"> @Model.TestInfo.Grade</td>
                             </tr>
                             <tr>
-                                <td colspan="2">Môn @Model.Subject</td>
-                                <td colspan="2">Thời gian thi @Model.TestTime phút</td>
+                                <td colspan="2">Môn @Model.TestInfo.Subject</td>
+                                <td colspan="2">Thời gian thi @Model.TestInfo.TestTime phút</td>
                             </tr>
                             <tr>
                                 <td colspan="2">@Model.StudentName</td>
@@ -96,28 +96,28 @@
                                     @foreach (var questionVM in groupQuestionVM.QuestionsList)
                                     {
                                         <div>
-                                            @switch ((questionVM as Student.QuestionObjectViewModel).QuestionType)
+                                            @switch ((questionVM as StudentViewModel.QuestionObjectViewModel).QuestionType)
                                             {
-                                                case Student.QuestionTypeEnum.Quiz:
-                                                    Html.RenderPartial("_TracNghiem1LuaChon", (Student.SingleQuestion_String_OneChoice_ViewModel)questionVM);
+                                                case StudentViewModel.QuestionTypeEnum.Quiz:
+                                                    Html.RenderPartial("_TracNghiem1LuaChon", (StudentViewModel.SingleQuestion_String_OneChoice_ViewModel)questionVM);
                                                     break;
-                                                case Student.QuestionTypeEnum.Underline:
-                                                    Html.RenderPartial("_TracNghiemGachChan", (Student.SingleQuestion_String_OneChoice_ViewModel)questionVM);
+                                                case StudentViewModel.QuestionTypeEnum.Underline:
+                                                    Html.RenderPartial("_TracNghiemGachChan", (StudentViewModel.SingleQuestion_String_OneChoice_ViewModel)questionVM);
                                                     break;
-                                                case Student.QuestionTypeEnum.QuizN:
-                                                    Html.RenderPartial("_TracNghiemNhieuLuaChon", (Student.SingleQuestion_Bool_MultiChoices_ViewModel)questionVM);
+                                                case StudentViewModel.QuestionTypeEnum.QuizN:
+                                                    Html.RenderPartial("_TracNghiemNhieuLuaChon", (StudentViewModel.SingleQuestion_Bool_MultiChoices_ViewModel)questionVM);
                                                     break;
-                                                case Student.QuestionTypeEnum.TrueFalse:
-                                                    Html.RenderPartial("_TracNghiemDungSai", (Student.SingleQuestion_Bool_MultiChoices_ViewModel)questionVM);
+                                                case StudentViewModel.QuestionTypeEnum.TrueFalse:
+                                                    Html.RenderPartial("_TracNghiemDungSai", (StudentViewModel.SingleQuestion_Bool_MultiChoices_ViewModel)questionVM);
                                                     break;
-                                                case Student.QuestionTypeEnum.Fill:
-                                                    Html.RenderPartial("_TracNghiemDienKhuyet", (Student.SingleQuestion_String_MultiChoices_ViewModel)questionVM);
+                                                case StudentViewModel.QuestionTypeEnum.Fill:
+                                                    Html.RenderPartial("_TracNghiemDienKhuyet", (StudentViewModel.SingleQuestion_String_MultiChoices_ViewModel)questionVM);
                                                     break;
-                                                case Student.QuestionTypeEnum.Matching:
-                                                    Html.RenderPartial("_TracNghiemNoiCheo", (Student.SingleQuestion_String_MultiChoices_ViewModel)questionVM);
+                                                case StudentViewModel.QuestionTypeEnum.Matching:
+                                                    Html.RenderPartial("_TracNghiemNoiCheo", (StudentViewModel.SingleQuestion_String_MultiChoices_ViewModel)questionVM);
                                                     break;
-                                                case Student.QuestionTypeEnum.Group:
-                                                    Html.RenderPartial("_CauHoiChum", (Student.GroupQuestionViewModel)questionVM);
+                                                case StudentViewModel.QuestionTypeEnum.Group:
+                                                    Html.RenderPartial("_CauHoiChum", (StudentViewModel.GroupQuestionViewModel)questionVM);
                                                     break;
 
                                             }

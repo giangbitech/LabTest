@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiTech.LabTest.DAL", "BiTec
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiTech.LabTest.BLL", "BiTech.LabTest.BLL\BiTech.LabTest.BLL.csproj", "{7A85ED07-07DD-4646-8E2D-48C39EDD865D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BiTech.LabTest.DataObject", "BiTech.LabTest.DataObject\BiTech.LabTest.DataObject.csproj", "{0C4D6D9A-F82D-441A-8EE8-06D60EA7A7B7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{7A85ED07-07DD-4646-8E2D-48C39EDD865D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7A85ED07-07DD-4646-8E2D-48C39EDD865D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7A85ED07-07DD-4646-8E2D-48C39EDD865D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C4D6D9A-F82D-441A-8EE8-06D60EA7A7B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C4D6D9A-F82D-441A-8EE8-06D60EA7A7B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C4D6D9A-F82D-441A-8EE8-06D60EA7A7B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C4D6D9A-F82D-441A-8EE8-06D60EA7A7B7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

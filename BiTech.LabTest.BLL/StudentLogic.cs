@@ -18,12 +18,20 @@ namespace BiTech.LabTest.BLL
         private string TABLE_TESTDATA = "testdata";
         private string TABLE_TESTRESULT = "testresult";
         private string TABLE_TESTRESULT_TEMP = "testresulttemp";
-        private string TABLE_STUDENT_BASE_INFO = "studentbaseinfo";
+        //private string TABLE_STUDENT_BASE_INFO = "studentbaseinfo";
 
         public StudentLogic()
         {
             var connectionString = Tool.GetConfiguration("ConnectionString");
+            if (connectionString == null)
+            {
+                connectionString = @"mongodb://127.0.0.1:27017";
+            }
             var databaseName = Tool.GetConfiguration("DatabaseName");
+            if (databaseName == null)
+            {
+                databaseName = "labtest";
+            }
             Database = new Database(connectionString, databaseName);
             
         }
@@ -72,7 +80,18 @@ namespace BiTech.LabTest.BLL
             this.TestResultRepository = new EntityRepository<TestResult>(Database, TABLE_TESTRESULT);
             return TestResultRepository.Insert(testResult);
         }
-        
+
+        /// <summary>
+        /// Lấy test result theo IP của học sinh
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public TestResult GetTestResultByIp(string ip)
+        {
+            TempResultEngine tempResultEngine = new TempResultEngine(Database, TABLE_TESTRESULT);
+            return tempResultEngine.GetByIpAddress(ip);
+        }
+
         /// <summary>
         /// Cập nhật kết quả thi của thí sinh
         /// </summary>
@@ -91,9 +110,8 @@ namespace BiTech.LabTest.BLL
         /// <returns>Nội dung bài thi</returns>
         public TestResult GetTestResultTempByIp(string ip)
         {
-            TempResultEngine tt = new TempResultEngine(Database, TABLE_TESTRESULT_TEMP);
-            
-            return tt.GetByIpAddress(ip);
+            TempResultEngine tempResultEngine = new TempResultEngine(Database, TABLE_TESTRESULT_TEMP);            
+            return tempResultEngine.GetByIpAddress(ip);
         }
 
         /// <summary>

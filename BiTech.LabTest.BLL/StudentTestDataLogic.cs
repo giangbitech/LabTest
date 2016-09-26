@@ -1,621 +1,63 @@
-﻿using BiTech.LabTest.BLL;
-using BiTech.LabTest.DAL.Models;
-using BiTech.LabTest.Models.Enums;
+﻿using BiTech.LabTest.DAL.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
-using System.Threading;
-using System.Web.Mvc;
+using System.Text;
+using System.Threading.Tasks;
 using static BiTech.LabTest.DAL.Models.TestData;
-using static BiTech.LabTest.Models.ViewModels.Student;
-using static BiTech.LabTest.BLL.Tool;
 using static BiTech.LabTest.DataObject.ViewModels.StudentViewModel;
 
-namespace BiTech.LabTest.Controllers
+namespace BiTech.LabTest.BLL
 {
-    public class StudentController : Controller
+    public class StudentTestDataLogic
     {
-        public StudentLogic _StudentLogic { get; set; }
-
-        public StudentTestStepEnum CurrentStudentTestStep { get; set; }
-
-        private const string STUDENT_SESSION = "studentbaseinfo";
-
-        public StudentController()
-        {
-            // Xác định quyền của người dùng trong controller này
-            ViewBag.ApplicationRole = Models.Enums.ApplicationRole.Student;
-        }
-
         /// <summary>
-        /// hàm index chính, khi vào dây sẽ chuyển sang action joinTest
+        /// Lấy thông tin cơ bản của bài thi
         /// </summary>
+        /// <param name="testDataId">id của bài thi</param>
         /// <returns></returns>
-        public ActionResult Index()
+        public TestBaseInfo LoadTestBaseInfo(string testDataId)
         {
-            return RedirectToAction("JoinTest");
-        }
-
-        /// <summary>
-        /// Cho ra view joinTest
-        /// Nếu đang chờ thi thì không chuyển sang trang chờ thi
-        /// Nếu có điểm rồi thì chuyến sang trang kết quả
-        /// </summary>
-        /// <returns></returns>
-        public ActionResult JoinTest(string changeName)
-        {
-            _StudentLogic = new StudentLogic();
-
-            StudentBaseInfo studentBaseInfo = (StudentBaseInfo)Session[STUDENT_SESSION];
-
-            string testResultID = "";
-            studentBaseInfo = CheckReconnection(Request.UserHostAddress);
-            if (studentBaseInfo != null)
-            {
-                Session[STUDENT_SESSION] = studentBaseInfo;
-                testResultID = studentBaseInfo?.TestResultID == null ? "" : studentBaseInfo.TestResultID;
-                if (studentBaseInfo.Score > -1)
-                {
-                    return RedirectToAction("FinishTest");
-                }
-            }
-
-            if (studentBaseInfo == null)
-            {
-                return View();
-            }
-
-            //Kiểm tra trạng thái phòng thi có cho phép thí sinh thi hay không
-            if (!string.IsNullOrEmpty(testResultID))
-            {
-                var teststep = _StudentLogic.GetTestStep(testResultID.ToString());
-                switch (teststep)
-                {
-                    case TestStepEnum.Finish:
-                        return RedirectToAction("JoinTest");
-                    case TestStepEnum.OnWorking:
-                        // Nếu đang thi mà thí sinh khong có tên thì không được thi.
-                        if (string.IsNullOrEmpty(studentBaseInfo.StudentName) || string.IsNullOrEmpty(studentBaseInfo.StudentClass))
-                        {
-                            return RedirectToAction("HoldingScreen");
-                        }
-                        return RedirectToAction("DoTest");
-                    case TestStepEnum.Waiting:
-                        // Kiểm tra nhập thông tin thí sinh
-                        if (!string.IsNullOrEmpty(changeName) || (string.IsNullOrEmpty(studentBaseInfo.StudentName) || string.IsNullOrEmpty(studentBaseInfo.StudentClass)))
-                        {
-                            studentBaseInfo.StudentName = studentBaseInfo.StudentClass = "";
-                            Session[STUDENT_SESSION] = studentBaseInfo;
-                            return View();
-                        }
-                        return RedirectToAction("WaitingScreen");
-                }
-            }
-            if (string.IsNullOrEmpty(studentBaseInfo.StudentName) || string.IsNullOrEmpty(studentBaseInfo.StudentClass))
-            {
-                return View();
-            }
-            return RedirectToAction("WaitingScreen");
-        }
-
-        /// <summary>
-        /// Kiểm tra học sinh đăng ký tên và cho vào trang chờ
-        /// </summary>
-        /// <param name="viewModel"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [ActionName("JoinTest")]
-        public ActionResult DoJoinTest(StudentJoinTestViewModel viewModel)
-        {
-            StudentBaseInfo studentBaseInfox = CheckReconnection(Request.UserHostAddress);
-            if (studentBaseInfox == null)
-            {
-                if (studentBaseInfox.Score > -1)
-                {
-                    return RedirectToAction("FinishTest");
-                }
-            }
-            _StudentLogic = new StudentLogic();
-            StudentBaseInfo studentBaseInfo = (StudentBaseInfo)Session[STUDENT_SESSION];
-            var testDataId = studentBaseInfo?.TestDataID;
-
-            TestStepEnum teststep = TestStepEnum.Waiting;
-            if (!string.IsNullOrEmpty(testDataId))
-                teststep = _StudentLogic.GetTestStep(testDataId.ToString());
-
-            //Nếu kết thúc rồi thì không cho thi
-            if (teststep == TestStepEnum.Finish)
-                return RedirectToAction("FinishTest");
-
-            if (ModelState.IsValid)
-            {
-                if (studentBaseInfo == null)
-                {
-                    studentBaseInfo = new StudentBaseInfo();
-                    studentBaseInfo.StudentName = viewModel.FullName;
-                    studentBaseInfo.StudentClass = viewModel.Class;
-                }
-
-                Session[STUDENT_SESSION] = studentBaseInfo;
-                CurrentStudentTestStep = StudentTestStepEnum.WaitingTest;
-                return RedirectToAction("WaitingScreen");
-            }
-
-            return View();
-        }
-
-        /// <summary>
-        /// Màn hình chờ thi
-        /// </summary>
-        /// <returns></returns>
-        public ActionResult WaitingScreen()
-        {
-            _StudentLogic = new StudentLogic();
-
-            StudentBaseInfo studentBaseInfo = (StudentBaseInfo)Session[STUDENT_SESSION];
-
-
-            var testDataId = studentBaseInfo?.TestDataID;
-            TestStepEnum teststep = TestStepEnum.Waiting;
-            if (!string.IsNullOrEmpty(testDataId))
-                teststep = _StudentLogic.GetTestStep(testDataId.ToString());
-
-            //Nếu kết thúc rồi thì không cho thi
-            if (teststep == TestStepEnum.Finish)
-                return RedirectToAction("FinishTest");
-
-            // Chưa nhập thông tin thí sinh
-
-            if ((studentBaseInfo?.StudentName == null || studentBaseInfo?.StudentClass == null)
-                && teststep == TestStepEnum.Waiting)
-            {
-                return RedirectToAction("JoinTest");
-            }
-
-            //Đã bắt đầu thi thì vào thi luôn
-            if (teststep == TestStepEnum.OnWorking)
-            {
-                return RedirectToAction("DoTest");
-            }
-
-            ViewBag.StudentName = studentBaseInfo?.StudentName;
-            ViewBag.ClassName = studentBaseInfo?.StudentClass;
-            ViewBag.StudentIPAdd = Request.UserHostAddress;
-
-
-            StudentBaseInfo studentBaseInfox = CheckReconnection(Request.UserHostAddress);
-            if (studentBaseInfox == null)
-            {
-                if (studentBaseInfox.Score > -1)
-                {
-                    return RedirectToAction("FinishTest");
-                }
-                List<string> studentAnswersList = new List<string>(); //đáp án của thí sinh            
-                TestResult testResult = new TestResult();
-                testResult.TestDataID = studentBaseInfo.TestDataID;
-                testResult.StudentName = studentBaseInfo.StudentName;
-                testResult.StudentClass = studentBaseInfo.StudentClass;
-                testResult.StudentIPAdd = Request.UserHostAddress;
-                testResult.TestGroupChoose = "";
-                testResult.StudentTestResult = studentAnswersList;
-                testResult.StudentTestData = "";
-                testResult.TestHints = "";
-                testResult.Score = -1;
-                testResult.RecordDateTime = DateTime.Now;
-                _StudentLogic = new StudentLogic();
-                string testResultID = _StudentLogic.SaveTestResultTemp(testResult);
-                studentBaseInfo.TestResultID = testResultID;
-            }
-
-            Session[STUDENT_SESSION] = studentBaseInfo;
-            return View();
-        }
-
-        /// <summary>
-        /// Màn hình chờ hết kì thi khác
-        /// </summary>
-        /// <returns></returns>
-        public ActionResult HoldingScreen()
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// submit test data ID
-        /// </summary>
-        /// <param name="testDataId"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [ActionName("DoTest")]
-        public ActionResult SubmitDoTest(string testDataId)
-        {
-            StudentBaseInfo studentBaseInfox = CheckReconnection(Request.UserHostAddress);
-            if (studentBaseInfox == null)
-            {
-                if (studentBaseInfox.Score > -1)
-                {
-                    return RedirectToAction("FinishTest");
-                }
-            }
-            _StudentLogic = new StudentLogic();
-            StudentBaseInfo studentBaseInfo = (StudentBaseInfo)Session[STUDENT_SESSION];
-            TestStepEnum teststep = TestStepEnum.Waiting;
-            //Nếu có điểm rồi không cho thi lại
-            if (!string.IsNullOrEmpty(testDataId))
-            {
-                teststep = _StudentLogic.GetTestStep(testDataId.ToString());
-                //Nếu kết thúc rồi thì không cho thi
-                if (teststep == TestStepEnum.Finish)
-                    return RedirectToAction("FinishTest");
-
-                studentBaseInfo.TestDataID = testDataId;
-                studentBaseInfo.StudentIPAdd = Request.UserHostAddress;
-
-                TestResult testResult = new TestResult();
-                testResult.TestDataID = studentBaseInfo.TestDataID;
-                testResult.StudentName = studentBaseInfo.StudentName;
-                testResult.StudentClass = studentBaseInfo.StudentClass;
-                testResult.StudentIPAdd = studentBaseInfo.StudentIPAdd;
-                testResult.TestGroupChoose = "";
-                testResult.StudentTestResult = null;
-                testResult.StudentTestData = "";
-                testResult.TestHints = "";
-                testResult.Score = -1;
-                testResult.RecordDateTime = DateTime.Now;
-                _StudentLogic = new StudentLogic();
-                _StudentLogic.UpdateTestResultTemp(testResult, studentBaseInfo.TestResultID);
-
-                Session[STUDENT_SESSION] = studentBaseInfo;
-                return Json(new { testDataId = testDataId });
-            }
-            return RedirectToAction("JoinTest");
-        }
-
-        /// <summary>
-        /// Lấy đề thi từ csdl và xuất ra view
-        /// </summary>
-        /// <returns>View của DoTest</returns>
-        public ActionResult DoTest()
-        {
-            StudentBaseInfo studentBaseInfo = CheckReconnection(Request.UserHostAddress);
-            bool isReconnected = false;
-            _StudentLogic = new StudentLogic();
-            if (studentBaseInfo == null)
-            {
-                isReconnected = false;
-                studentBaseInfo = (StudentBaseInfo)Session[STUDENT_SESSION];
-            }
-            else
-            {
-                if (studentBaseInfo.Score > -1)
-                {
-                    return RedirectToAction("FinishTest");
-                }
-                isReconnected = true;
-            }
-
-            var testDataId = studentBaseInfo?.TestDataID;
-            TestStepEnum teststep = TestStepEnum.Waiting;
-            if (!string.IsNullOrEmpty(testDataId))
-                teststep = _StudentLogic.GetTestStep(testDataId.ToString());
-
-            //Nếu kết thúc rồi thì không cho thi
-            if (teststep == TestStepEnum.Finish)
-                return RedirectToAction("FinishTest");
-
-            if (studentBaseInfo?.StudentName == null || studentBaseInfo?.StudentClass == null)
-                return RedirectToAction("JoinTest");
-
-            _StudentLogic = new StudentLogic();
-
-            //Nếu chưa có Test Data Id thì vào đăng ký lại
-            if (studentBaseInfo?.TestDataID == null)
-            {
-                return RedirectToAction("JoinTest");
-            }
-
-            ViewBag.TestDataID = testDataId;
-            string IP = Request.UserHostAddress;
-
-            //string dethiodangjson = "";
-            //ViewBag.Data = Json(new { group = "gg", ddd = "dd" });
-
-            //todo: Chinh lai Lay tu database
-            //StreamReader steamReader = new StreamReader(Server.MapPath("~/Content/data.json"));
-            //CurrentStudentTestStep = StudentTestStepEnum.DoingTest;
-            //var testDataInJson = JObject.Parse(steamReader.ReadToEnd());
-
-            #region Parse cac cau hoi de xuat ra man hinh
-            var testGroupList = new List<TestGroupViewModel>();
-            string hints = "";
-            StudentTestDataLogic studentTestDataLogic = new StudentTestDataLogic();
-
-            TestResult testResultBackup = _StudentLogic.GetTestResultTempByID(studentBaseInfo?.TestResultID);
-            if (isReconnected && !string.IsNullOrEmpty(testResultBackup.StudentTestData))
-            {
-
-                testGroupList = studentTestDataLogic.LoadTestBackup(testResultBackup);
-                if (testGroupList == null)
-                {
-                    return RedirectToAction("JoinTest");
-                }
-                else
-                {
-                    hints = testResultBackup.TestHints;
-                }
-            }
-            else
-            {
-                testGroupList = studentTestDataLogic.LoadTestById(testDataId);
-
-            }
-            #endregion
-
-            #region To String All Right Answers
-            if (!(isReconnected && !string.IsNullOrEmpty(testResultBackup.StudentTestData)))
-            {
-                hints = Base64Encode(studentTestDataLogic.LoadHints(testGroupList));
-            }
-            #endregion
-
-            #region Inits Test Info
-            var testDataMixed_json = JsonConvert.SerializeObject(testGroupList);
-            var testDataMixed_json_base64 = Base64Encode(testDataMixed_json);
-            TestBaseInfo testbaseInfo = studentTestDataLogic.LoadTestBaseInfo(testDataId);
-
-            var viewModel = new TestDataViewModel
-            {
-                TestInfo = testbaseInfo,
-                StudentName = studentBaseInfo.StudentName,
-                StudentClass = studentBaseInfo.StudentClass,
-                StudentIPAdd = IP,
-                TestGroupChoose = "",
-                Base64Code = hints,
-                Base64Data = testDataMixed_json_base64,
-                TestGroupList = testGroupList
-            };
-            #endregion
-
-            #region Backup lần đầu thông tin bài làm        
-            if (string.IsNullOrEmpty(testResultBackup.StudentTestData))
-            {
-                List<string> studentAnswersList = new List<string>(); //đáp án của thí sinh    
-                TestResult testResult = new TestResult();
-                testResult.TestDataID = studentBaseInfo.TestDataID;
-                testResult.StudentName = studentBaseInfo.StudentName;
-                testResult.StudentClass = studentBaseInfo.StudentClass;
-                testResult.StudentIPAdd = IP;
-                testResult.TestGroupChoose = "";
-                testResult.StudentTestResult = studentAnswersList;
-                testResult.StudentTestData = testDataMixed_json;
-                testResult.TestHints = hints;
-                testResult.Score = -1;
-                testResult.RecordDateTime = DateTime.Now;
-                _StudentLogic = new StudentLogic();
-                _StudentLogic.UpdateTestResultTemp(testResult, studentBaseInfo.TestResultID);
-
-                Session[STUDENT_SESSION] = studentBaseInfo;
-            }
-            #endregion
-
-            return View(viewModel);
-        }
-
-        /// <summary>
-        /// Hoàn thành bài thi
-        /// Chấm điểm và lưu xuống csdl
-        /// </summary>
-        /// <param name="formCollection"></param>
-        /// <returns>Trả về trang FinishTest</returns>
-        public ActionResult DoneTest(FormCollection formCollection)
-        {
-            StudentBaseInfo studentBaseInfox = CheckReconnection(Request.UserHostAddress);
-            if (studentBaseInfox == null)
-            {
-                if (studentBaseInfox.Score > -1)
-                {
-                    return RedirectToAction("FinishTest");
-                }
-            }
-            System.Collections.Specialized.NameValueCollection nameValues = formCollection;
-            StudentBaseInfo studentBaseInfo = (StudentBaseInfo)Session[STUDENT_SESSION];
-            studentBaseInfo.Score = new StudentTestDataLogic().ReviewStudentTestResult(nameValues, studentBaseInfo);
-            Session[STUDENT_SESSION] = studentBaseInfo;
-            return RedirectToAction("FinishTest");
-        }
-
-        /// <summary>
-        /// Mỗi lần thí sinh chọn đáp án là update backup lại
-        /// </summary>
-        /// <param name="formCollection"></param>
-        public void BackupTest(FormCollection formCollection)
-        {
-            StudentBaseInfo studentBaseInfo = (StudentBaseInfo)Session[STUDENT_SESSION];
-            List<string> studentAnswersList = new List<string>(); //đáp án của thí sinh
-
-            var Base64Code = formCollection["Base64Code"];// đáp án
-            var Base64Data = Base64Decode(formCollection["Base64Data"]);// đề thi
-
-            #region Lấy câu trả lời ra List
-            var testGroupHints = Base64Decode(Base64Code).Split(new char[] { '#' }, StringSplitOptions.RemoveEmptyEntries);
-            for (int groupID = 0; groupID < testGroupHints.Length; groupID++)
-            {
-                //lấy thông tin phần thi và dữ liệu: [0] là thong tin, [1] là dữ liệu
-                var groupParts = testGroupHints[groupID].Split('@');
-
-                //chia thông tin phần thi thành tên và kiểu thi (1 là chung, 0 là riêng)
-                var groupInfos = groupParts[0].Split('!');
-
-                //kiểm tra chọn phần thi của HS để tính điểm ("1" là phần chung hoặc "TestGroupChoose" là phần được chọn)
-
-                var hints = groupParts[1].Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < hints.Length; i++)
-                {
-                    var questionSTT = hints[i].Split(new char[] { '-' }, 2, StringSplitOptions.RemoveEmptyEntries)[0].Split(new char[] { ')' })[1];
-                    var studentAnswerValue = formCollection["Answer-" + questionSTT];
-                    if (studentAnswerValue == null)
-                    {
-                        studentAnswersList.Add("Answer-" + questionSTT + "+NULL");
-                    }
-                    else
-                    {
-                        studentAnswersList.Add("Answer-" + questionSTT + "+" + studentAnswerValue);
-                    }
-                }
-            }
-            #endregion
-
-            #region Lưu kết quả tạm vào csdl
-            if (studentBaseInfo?.TestResultID != null)
-            {
-                TestResult testResult = new TestResult();
-                testResult.TestDataID = studentBaseInfo.TestDataID;
-                testResult.StudentName = studentBaseInfo.StudentName;
-                testResult.StudentClass = studentBaseInfo.StudentClass;
-                testResult.StudentIPAdd = formCollection["StudentIPAdd"];
-                testResult.TestGroupChoose = formCollection["TestGroupChoose"] != null ? formCollection["TestGroupChoose"] : "";
-                testResult.StudentTestResult = studentAnswersList;
-                testResult.StudentTestData = Base64Data;
-                testResult.TestHints = Base64Code;
-                testResult.Score = -1;
-                testResult.RecordDateTime = DateTime.Now;
-                _StudentLogic = new StudentLogic();
-                _StudentLogic.UpdateTestResultTemp(testResult, studentBaseInfo.TestResultID);
-            }
-            #endregion
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="testResultID"></param>
-        /// <returns></returns>
-        public ActionResult GetBackupTestResult()
-        {
-            _StudentLogic = new StudentLogic();
-            var testResult = _StudentLogic.GetTestResultTempByIp(Request.UserHostAddress);
-            if (testResult == null)
-            {
-                return Json(new string[] { "NO" });
-            }
-            if (testResult.StudentTestResult == null)
-            {
-                return Json(new string[] { "NO" });
-            }
-            testResult.StudentTestResult.Add(testResult.TestGroupChoose);
-            var ret = Json(testResult.StudentTestResult);
-            return ret;
-        }
-
-        /// <summary>
-        /// Hoàn thành bài thi
-        /// Chạy ra giao điện kết quả
-        /// </summary>
-        /// <returns></returns>
-        public ActionResult FinishTest(FormCollection formCollection)
-        {
-            StudentBaseInfo studentBaseInfo = (StudentBaseInfo)Session[STUDENT_SESSION];
-            if (studentBaseInfo == null)
-            {
-                return RedirectToAction("JoinTest");
-            }
-            var testDataId = studentBaseInfo.TestDataID;
-
-            if (testDataId == null)
-            {
-                return RedirectToAction("WaitingScreen");
-            }
-            _StudentLogic = new StudentLogic();
-            var state = _StudentLogic.GetTestStep(testDataId.ToString());
-
-            if (state == TestStepEnum.Finish)
-            {
-                Session[STUDENT_SESSION] = null;
-            }
-            else
-            {
-                ViewBag.StudentName = studentBaseInfo.StudentName;
-                ViewBag.ClassName = studentBaseInfo.StudentClass;
-                ViewBag.Score = studentBaseInfo.Score.ToString();
-            }
-            return View();
-        }
-
-        /// <summary>
-        /// Keep session alive
-        /// </summary>
-        public void KeepSession()
-        {
-            if (Session[STUDENT_SESSION] != null)
-                Session[STUDENT_SESSION] = Session[STUDENT_SESSION];
-        }
-
-        /// <summary>
-        /// Nếu trang làm bài bị lose focus thì hủy bài thi
-        /// </summary>
-        /// <returns></returns>
-        public ActionResult OnLoseFocus()
-        {
-            return RedirectToAction("JoinTest");
-        }
-
-
-        public ActionResult TestSubmitDoTest()
-        {
-            Thread[] threads = new Thread[100];
-            for (int i = 0; i < threads.Length; i++)
-            {
-                string x = i.ToString();
-                ThreadWorker worker = new ThreadWorker(x);
-                worker.ThreadDone += HandleThreadDone;
-
-                threads[i] = new Thread(worker.Run);
-                threads[i].Start();
-            }
-            return View();
-        }
-
-
-        void HandleThreadDone(object sender, EventArgs e)
-        {
-        }
-
-        class ThreadWorker
-        {
-            public event EventHandler ThreadDone;
-            public string i { get; set; }
-            public ThreadWorker(string ix)
-            {
-                i = ix;
-            }
-            public void Run()
-            {
-                StudentController controller = new StudentController();
-                //controller = SetFakeControllerContext(controller, i.ToString());
-                // Act
-
-                ViewResult result2 = controller.gxetxxx("57e343b71c5ccc1bf41f4565") as ViewResult;
-                if (ThreadDone != null)
-                    ThreadDone(this, EventArgs.Empty);
-            }
-        }
-
-        public ActionResult gxetxxx(string testDataId)
-        {
-            _StudentLogic = new StudentLogic();
-
-            string IP = "";
-            //string dethiodangjson = "";
-            //ViewBag.Data = Json(new { group = "gg", ddd = "dd" });
-
-            var dbTestData = _StudentLogic.GetTest(testDataId);
+            StudentLogic studentLogic = new StudentLogic();
+            var dbTestData = studentLogic.GetTest(testDataId);
             var testDataInJson = JObject.Parse(dbTestData.Data);
+            TestBaseInfo testinfo = new TestBaseInfo();
+            testinfo.SchoolName = testDataInJson["test"]["header"]["name"]?.ToString();
+            testinfo.SchoolInfo = testDataInJson["test"]["header"]["info"]?.ToString();
+            testinfo.Year = testDataInJson["test"]["header"]["year"]?.ToString();
+            testinfo.TestType = testDataInJson["test"]["header"]["type"]?.ToString();
+            testinfo.TestTime = testDataInJson["test"]["header"]["time"]?.ToString();
+            testinfo.Subject = testDataInJson["test"]["header"]["subject"]?.ToString();
+            testinfo.Grade = testDataInJson["test"]["header"]["grade"]?.ToString();
+            return testinfo;
+        }
 
+        /// <summary>
+        /// Lấy nội dung bài thi theo Id
+        /// </summary>
+        /// <param name="testDataId">id của bài thi</param>
+        /// <returns></returns>
+        public List<TestGroupViewModel> LoadTestById(string testDataId)
+        {
+            StudentLogic studentLogic = new StudentLogic();
+            var dbTestData = studentLogic.GetTest(testDataId);
+            return LoadTestByTestData(dbTestData);
+
+        }
+
+        /// <summary>
+        /// Lấy nội dung bài thi theo TestData
+        /// </summary>
+        /// <param name="dbTestData">TestData</param>
+        /// <returns></returns>
+        public List<TestGroupViewModel> LoadTestByTestData(TestData dbTestData)
+        {
+            var testDataInJson = JObject.Parse(dbTestData.Data);
             var testGroupList = new List<TestGroupViewModel>();
             int stt = 1;
-            #region MyRegion
             // lấy từng nhóm câu hỏi ra
             for (int i = 0; i < testDataInJson["test"]["groups"].Count(); i++)
             {
@@ -1067,12 +509,119 @@ namespace BiTech.LabTest.Controllers
                 }
                 #endregion
 
-                ShuffleList(testGroup.QuestionsList);
+                Tool.ShuffleList(testGroup.QuestionsList);
                 testGroupList.Add(testGroup);
             }
-            #endregion
+            return testGroupList;
+        }
 
-            #region sss
+        /// <summary>
+        /// Lấy bài thi đã được lưu tạm của học sinh
+        /// </summary>
+        /// <param name="testResultBackup">thông tin lưu tạm của học sinh</param>
+        /// <returns></returns>
+        public List<TestGroupViewModel> LoadTestBackup(TestResult testResultBackup)
+        {
+            var testGroupList = new List<TestGroupViewModel>();
+
+            #region Load câu hỏi đã lưu
+            List<string> studentAnswersListBackup = new List<string>(); //đáp án của thí sinh      
+            //ViewBag.TestGroupChoose = testResultBackup.TestGroupChoose;
+            studentAnswersListBackup = testResultBackup.StudentTestResult;
+            //testResultBackup.StudentTestData
+            var tmptestGroupList = JsonConvert.DeserializeObject<List<TestGroupViewModel>>(testResultBackup.StudentTestData);
+            foreach (var itemTestGroup in tmptestGroupList)
+            {
+                TestGroupViewModel testgroup = new TestGroupViewModel();
+                testgroup.Title = itemTestGroup.Title;
+                testgroup.isForAll = itemTestGroup.isForAll;
+                testgroup.QuestionsList = new List<object>();
+
+                foreach (var itemQuestionObject in itemTestGroup.QuestionsList)
+                {
+                    var jsonQuestion = JObject.Parse(itemQuestionObject.ToString());
+                    var itemQuestionType = jsonQuestion["QuestionType"].ToString();
+                    var type = (QuestionTypeEnum)Enum.Parse(typeof(QuestionTypeEnum), itemQuestionType);
+
+                    switch (type)
+                    {
+                        case QuestionTypeEnum.Quiz:
+                        case QuestionTypeEnum.Underline:
+                            SingleQuestion_String_OneChoice_ViewModel tmp1 = JsonConvert.DeserializeObject<SingleQuestion_String_OneChoice_ViewModel>(jsonQuestion.ToString());
+                            testgroup.QuestionsList.Add(tmp1);
+                            break;
+                        case QuestionTypeEnum.QuizN:
+                        case QuestionTypeEnum.TrueFalse:
+                            SingleQuestion_Bool_MultiChoices_ViewModel tmp2 = JsonConvert.DeserializeObject<SingleQuestion_Bool_MultiChoices_ViewModel>(jsonQuestion.ToString());
+                            testgroup.QuestionsList.Add(tmp2);
+                            break;
+                        case QuestionTypeEnum.Fill:
+                        case QuestionTypeEnum.Matching:
+                            SingleQuestion_String_MultiChoices_ViewModel tmp3 = JsonConvert.DeserializeObject<SingleQuestion_String_MultiChoices_ViewModel>(jsonQuestion.ToString());
+                            testgroup.QuestionsList.Add(tmp3);
+                            break;
+                        case QuestionTypeEnum.Group:
+                            GroupQuestionViewModel tmp4 = JsonConvert.DeserializeObject<GroupQuestionViewModel>(jsonQuestion.ToString());
+                            GroupQuestionViewModel tmpGroup = new GroupQuestionViewModel();
+                            tmpGroup.Content = tmp4.Content;
+                            tmpGroup.QuestionType = tmp4.QuestionType;
+                            tmpGroup.SingleQuestionsList = new List<object>();
+                            for (int i = 0; i < tmp4.SingleQuestionsList.Count; i++)
+                            {
+                                var jsonGQuestion = JObject.Parse(tmp4.SingleQuestionsList[i].ToString());
+                                var itemGQuestionType = jsonGQuestion["QuestionType"].ToString();
+                                var gtype = (QuestionTypeEnum)Enum.Parse(typeof(QuestionTypeEnum), itemGQuestionType);
+
+                                switch (gtype)
+                                {
+                                    case QuestionTypeEnum.Quiz:
+                                    case QuestionTypeEnum.Underline:
+                                        SingleQuestion_String_OneChoice_ViewModel gtmp1 = JsonConvert.DeserializeObject<SingleQuestion_String_OneChoice_ViewModel>(jsonGQuestion.ToString());
+                                        tmpGroup.SingleQuestionsList.Add(gtmp1);
+                                        break;
+                                    case QuestionTypeEnum.QuizN:
+                                    case QuestionTypeEnum.TrueFalse:
+                                        SingleQuestion_Bool_MultiChoices_ViewModel gtmp2 = JsonConvert.DeserializeObject<SingleQuestion_Bool_MultiChoices_ViewModel>(jsonGQuestion.ToString());
+                                        tmpGroup.SingleQuestionsList.Add(gtmp2);
+                                        break;
+                                    case QuestionTypeEnum.Fill:
+                                    case QuestionTypeEnum.Matching:
+                                        SingleQuestion_String_MultiChoices_ViewModel gtmp3 = JsonConvert.DeserializeObject<SingleQuestion_String_MultiChoices_ViewModel>(jsonGQuestion.ToString());
+                                        tmpGroup.SingleQuestionsList.Add(gtmp3);
+                                        break;
+                                }
+
+                            }
+                            testgroup.QuestionsList.Add(tmpGroup);
+                            break;
+
+                    }
+
+                }
+                testGroupList.Add(testgroup);
+            }
+            var jsonx = tmptestGroupList[0].QuestionsList[0];
+
+            //var type = jsonx[""];
+            if (testResultBackup.Score == -1)
+            {
+                return testGroupList;
+            }
+            else
+            {
+                return null;
+            }
+            #endregion
+        }
+
+        /// <summary>
+        /// Tạo đáp án
+        /// </summary>
+        /// <param name="testGroupList">danh sách câu hỏi</param>
+        /// <returns></returns>
+        public string LoadHints(List<TestGroupViewModel> testGroupList)
+        {
+            int stt = 1;
             string hints = "";
             foreach (var testgroup in testGroupList)
             {
@@ -1201,43 +750,165 @@ namespace BiTech.LabTest.Controllers
                     }
                 }
             }
+            return hints;
+        }
+
+        public double ReviewStudentTestResult(NameValueCollection formCollection, StudentBaseInfo studentBaseInfo)
+        {
+            StudentLogic studentLogic = new StudentLogic();
+            double score = 0;
+            List<string> studentAnswersList = new List<string>(); //đáp án của thí sinh
+
+            var Base64Code = formCollection["Base64Code"];// đáp án
+            var Base64Data = Tool.Base64Decode(formCollection["Base64Data"]);// đề thi
+
+            #region Chấm điểm
+            var testGroupHints = Tool.Base64Decode(Base64Code).Split(new char[] { '#' }, StringSplitOptions.RemoveEmptyEntries);
+            for (int groupID = 0; groupID < testGroupHints.Length; groupID++)
+            {
+                //lấy thông tin phần thi và dữ liệu: [0] là thong tin, [1] là dữ liệu
+                var groupParts = testGroupHints[groupID].Split('@');
+
+                //chia thông tin phần thi thành tên và kiểu thi (1 là chung, 0 là riêng)
+                var groupInfos = groupParts[0].Split('!');
+
+                //kiểm tra chọn phần thi của HS để tính điểm ("1" là phần chung hoặc "TestGroupChoose" là phần được chọn)
+                if (groupInfos[1].Equals("1") || groupInfos[0].Equals(formCollection["TestGroupChoose"]))
+                {
+                    var hints = groupParts[1].Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
+                    for (int i = 0; i < hints.Length; i++)
+                    {
+                        var questionSTT = hints[i].Split(new char[] { '-' }, 2, StringSplitOptions.RemoveEmptyEntries)[0].Split(new char[] { ')' })[1];
+                        var studentAnswerValue = formCollection["Answer-" + questionSTT];
+                        if (studentAnswerValue == null)
+                        {
+
+                            studentAnswersList.Add("Answer-" + questionSTT + "-NULL");
+                        }
+                        else
+                        {
+                            var hintSergments = hints[i].Split('-');
+
+                            //kiểm tra nếu có "+" là câu fill hoặc matching, không có thì là còn lại
+                            if (hints[i].Contains("+"))
+                            {
+                                var answerSergments = new string[] { "" };
+                                if (studentAnswerValue.Contains(","))
+                                    answerSergments = studentAnswerValue.Split(',');
+                                else
+                                    answerSergments = new string[] { studentAnswerValue };
+
+                                studentAnswersList.Add("Answer-" + questionSTT + "-Fill_Matching+" + studentAnswerValue);
+
+                                for (int answerID = 1; answerID < hintSergments.Length; answerID++)
+                                {
+                                    var studentAnswerPack = hintSergments[answerID].Split('+');
+
+                                    bool isRight = true;
+                                    if (!studentAnswerPack[1].Equals(answerSergments[int.Parse(studentAnswerPack[0]) - 1]))
+                                    {
+                                        isRight = false;
+                                        break;
+                                    }
+                                    if (isRight)
+                                    {
+                                        //Nếu có điểm thi
+                                        if (hintSergments[0].Contains(")"))
+                                        {
+                                            score += double.Parse(hintSergments[0].Split(')')[0]);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                int numberOfAnswers = hintSergments.Length;
+                                //nếu hơn 2 là câu nhiều lựa chọn hoặc đúng sai
+                                if (numberOfAnswers > 2)
+                                {
+                                    var hintsdetail = hints[i].Split(new char[] { '-' }, 2);
+
+                                    var answerSergments = new string[] { "" };
+                                    if (studentAnswerValue.Contains(","))
+                                        answerSergments = studentAnswerValue.Split(',');
+                                    else
+                                        answerSergments = new string[] { studentAnswerValue };
+
+                                    studentAnswersList.Add("Answer-" + questionSTT + "-QuizN_TrueFalse+" + studentAnswerValue);
+
+                                    bool isRight = true;
+                                    for (int answerID = 0; answerID < answerSergments.Length; answerID++)
+                                    {
+                                        if (!hintsdetail[1].Contains(answerSergments[answerID]))
+                                        {
+                                            isRight = false;
+                                            break;
+                                        }
+                                        //answerSergments[answerID]
+                                    }
+                                    if (isRight)
+                                    {
+                                        //Nếu có điểm thi
+                                        if (hintSergments[0].Contains(")"))
+                                        {
+                                            score += double.Parse(hintsdetail[0].Split(')')[0]);
+                                        }
+                                    }
+                                }
+                                else //1 lựa chọn hoặc gạch chân
+                                {
+                                    var answerSergments = new string[] { "" };
+                                    if (studentAnswerValue.Contains(","))
+                                        answerSergments = studentAnswerValue.Split(',');
+                                    else
+                                        answerSergments = new string[] { studentAnswerValue };
+
+                                    if (answerSergments.Length <= numberOfAnswers)
+                                    {
+                                        studentAnswersList.Add("Answer-" + questionSTT + "-Quiz_UnderLine+" + studentAnswerValue);
+                                        if (hintSergments[1].Contains(studentAnswerValue))
+                                        {
+                                            //Nếu có điểm thi
+                                            if (hintSergments[0].Contains(")"))
+                                            {
+                                                score += double.Parse(hintSergments[0].Split(')')[0]);
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        studentAnswersList.Add("Answer-" + questionSTT + "-TrueFalse+" + studentAnswerValue);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             #endregion
 
-            var testDataMixed_json = JsonConvert.SerializeObject(testGroupList);
-            var testDataMixed_json_base64 = Base64Encode(testDataMixed_json);
-            hints = Base64Encode(hints);
+            #region Lưu kết quả vào csdl
 
-            TestBaseInfo testbaseInfo = new StudentTestDataLogic().LoadTestBaseInfo(testDataId);
-
-            var viewModel = new TestDataViewModel
-            {
-                TestInfo = testbaseInfo,
-                StudentName = "",
-                StudentClass = "",
-                StudentIPAdd = IP,
-                TestGroupChoose = "",
-                Base64Code = hints,
-                Base64Data = testDataMixed_json_base64,
-                TestGroupList = testGroupList
-            };
-
-            List<string> studentAnswersList = new List<string>(); //đáp án của thí sinh            
             TestResult testResult = new TestResult();
-            testResult.TestDataID = testDataId;
-            testResult.StudentName = "";
-            testResult.StudentClass = "";
-            testResult.StudentIPAdd = "";
-            testResult.TestGroupChoose = "";
+            testResult.TestDataID = studentBaseInfo.TestDataID;
+            testResult.StudentName = studentBaseInfo.StudentName;
+            testResult.StudentClass = studentBaseInfo.StudentClass;
+            testResult.StudentIPAdd = formCollection["StudentIPAdd"];
+            testResult.TestGroupChoose = formCollection["TestGroupChoose"] != null ? formCollection["TestGroupChoose"] : "";
             testResult.StudentTestResult = studentAnswersList;
-            testResult.StudentTestData = testDataMixed_json;
-            testResult.TestHints = hints;
-            testResult.Score = -1;
+            testResult.StudentTestData = Base64Data;
+            testResult.TestHints = Base64Code;
+            testResult.Score = score;
             testResult.RecordDateTime = DateTime.Now;
-            _StudentLogic = new StudentLogic();
-            string testResultID = _StudentLogic.SaveTestResultTemp(testResult);
-            ViewBag.DoneLoading = "a";
+            studentLogic = new StudentLogic();
+            string newID = studentLogic.SaveTestResult(testResult);
+            studentLogic.UpdateTestResultTemp(testResult, studentBaseInfo.TestResultID);
 
-            return View(viewModel);
+            studentBaseInfo.TestResultID = newID;
+            #endregion
+
+            return score;
         }
+       
     }
 }

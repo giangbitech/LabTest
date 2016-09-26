@@ -1,5 +1,5 @@
-﻿@using BiTech.LabTest.Models.ViewModels
-@model Student.GroupQuestionViewModel
+﻿@using BiTech.LabTest.DataObject.ViewModels
+@model StudentViewModel.GroupQuestionViewModel
 
 <div class="group-question-div">
     <div class="group-question-div-title">
@@ -8,21 +8,21 @@
     @foreach (var qvm in Model.SingleQuestionsList)
     {
         <div>
-            @switch ((qvm as Student.QuestionObjectViewModel).QuestionType)
+            @switch ((qvm as StudentViewModel.QuestionObjectViewModel).QuestionType)
                 {
-                    case Student.QuestionTypeEnum.Quiz:
-                    case Student.QuestionTypeEnum.Underline:
-                        Html.RenderPartial("_TracNghiem1LuaChon", (Student.SingleQuestion_String_OneChoice_ViewModel)qvm);
+                    case StudentViewModel.QuestionTypeEnum.Quiz:
+                    case StudentViewModel.QuestionTypeEnum.Underline:
+                        Html.RenderPartial("_TracNghiem1LuaChon", (StudentViewModel.SingleQuestion_String_OneChoice_ViewModel)qvm);
                         break;
-                    case Student.QuestionTypeEnum.QuizN:
-                    case Student.QuestionTypeEnum.TrueFalse:
-                        Html.RenderPartial("_TracNghiemNhieuLuaChon", (Student.SingleQuestion_Bool_MultiChoices_ViewModel)qvm);
+                    case StudentViewModel.QuestionTypeEnum.QuizN:
+                    case StudentViewModel.QuestionTypeEnum.TrueFalse:
+                        Html.RenderPartial("_TracNghiemNhieuLuaChon", (StudentViewModel.SingleQuestion_Bool_MultiChoices_ViewModel)qvm);
                         break;
-                    case Student.QuestionTypeEnum.Fill:
-                        Html.RenderPartial("_TracNghiemDienKhuyet", (Student.SingleQuestion_String_MultiChoices_ViewModel)qvm);
+                    case StudentViewModel.QuestionTypeEnum.Fill:
+                        Html.RenderPartial("_TracNghiemDienKhuyet", (StudentViewModel.SingleQuestion_String_MultiChoices_ViewModel)qvm);
                         break;
-                    case Student.QuestionTypeEnum.Matching:
-                        Html.RenderPartial("_TracNghiemNoiCheo", (Student.SingleQuestion_String_MultiChoices_ViewModel)qvm);
+                    case StudentViewModel.QuestionTypeEnum.Matching:
+                        Html.RenderPartial("_TracNghiemNoiCheo", (StudentViewModel.SingleQuestion_String_MultiChoices_ViewModel)qvm);
                         break;
 
                 }
