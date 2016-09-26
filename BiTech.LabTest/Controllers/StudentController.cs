@@ -1,10 +1,6 @@
 ﻿using BiTech.LabTest.BLL;
+using BiTech.LabTest.DAL.Models;
 using BiTech.LabTest.Models.Enums;
-using System;
-using System.Activities;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using static BiTech.LabTest.Models.ViewModels.Student;
 
@@ -12,7 +8,7 @@ namespace BiTech.LabTest.Controllers
 {
     public class StudentController : Controller
     {
-        public StudentLogic TeacherLogic { get; set; }
+        public StudentLogic StudentLogic { get; set; }
 
         public StudentTestStepEnum CurrentStudentTestStep { get; set; }
 
@@ -21,6 +17,7 @@ namespace BiTech.LabTest.Controllers
         {
             // Xác định quyền của người dùng trong controller này
             ViewBag.ApplicationRole = Models.Enums.ApplicationRole.Student;
+            StudentLogic = new StudentLogic();
         }
 
 
@@ -29,17 +26,53 @@ namespace BiTech.LabTest.Controllers
             return RedirectToAction("JoinTest");
         }
 
+        /// <summary>
+        /// Màn hình nhập thông tin cá nhân của thí sinh
+        /// </summary>
+        /// <returns></returns>
         public ActionResult JoinTest()
         {
-
-            // Thí sinh đã nhập thông tin
-            // Chưa thi thì chuyển vào Waiting
-            if (CurrentStudentTestStep == StudentTestStepEnum.WaitingTest)
-            {
-                return RedirectToAction("WaitingScreen");
-            }
-
             return View();
+            //string studentIpAddress = Request.UserHostAddress;
+           
+
+            //TestData lastTest = null;
+
+            //// Bài gần đây nhất là hoàn tất thì bắt nhập lại thông tin mới để thi bài khác.
+            //if (StudentLogic.IsLastTestFinished(out lastTest))
+            //{
+            //    // Nhập lại thông tin mới để thi bài thi khác.
+            //    Session["StudentInformation"] = null;
+            //    return View();
+            //}
+            //else
+            //{
+            //    // LastTest đang thi thì chuyển vào màn hình thi để thi típ.
+            //    if (lastTest != null && lastTest.TestStep == TestData.TestStepEnum.OnWorking)
+            //    {
+            //        TestResult testResult = null;
+            //        // Thí sinh đang trong vòng thi hiện tại.
+            //        if (StudentLogic.IsCurrentIpOnTestProgress(studentIpAddress, lastTest.Id, out testResult))
+            //        {
+            //            Session["StudentInformation"] = testResult;
+            //            // Vào màn hình tiếp tục thi
+            //            return RedirectToAction("DoTest");
+            //        }
+            //        else
+            //        {
+            //            // Chờ vòng thi hiện tại kết thúc
+            //            // Xóa dữ liệu thống kê online của IP máy này.
+            //            this.StudentLogic.DeleteOnlineByIpAddress(studentIpAddress);
+            //            return RedirectToAction("WaitingAnotherTestFinished");
+            //        }
+            //    }
+            //    else
+            //    {
+            //        // Chờ giáo viên mở phòng thi mới
+            //        // Nhập thông tin dự thi
+            //        return View();
+            //    }
+            //}
         }
 
         [HttpPost]
@@ -48,11 +81,23 @@ namespace BiTech.LabTest.Controllers
         {
             if (ModelState.IsValid)
             {
-                Session["FullName"]              = viewModel.FullName;
-                Session["Class"]                 = viewModel.Class;
-                Session["IsCurrentTestFinished"] = false;
+                string studentIpAddress = Request.UserHostAddress;
+                string studentName      = viewModel.FullName;
+                string studentClass     = viewModel.Class;
+                var testStep            = TestData.TestStepEnum.Waiting;
 
-                CurrentStudentTestStep = StudentTestStepEnum.WaitingTest;
+
+                var testResult = Session["StudentInformation"] = new TestResult
+                {
+                    StudentIPAddress = studentIpAddress,
+                    StudentName      = studentName,
+                    StudentClass     = studentClass,
+                    TestStep         = testStep
+                };
+
+                // Cập nhật thông tin online
+                StudentLogic.UpdateLastOnline(studentIpAddress, studentName, studentClass, testStep);
+
                 return RedirectToAction("WaitingScreen");
             }
 
@@ -61,19 +106,61 @@ namespace BiTech.LabTest.Controllers
 
         public ActionResult WaitingScreen()
         {
-            // Chưa nhập thông tin thí sinh
-            if (Session["FullName"] == null || Session["Class"] == null)
-            {
-                return RedirectToAction("JoinTest");
-            }
+            var studentInformation = (TestResult) Session["StudentInformation"];
 
-            ViewBag.StudentName = "Nguyễn Trường Giang";
-            return View();
+
+            var viewModel = new WaitingScreenViewModel
+            {
+                UserIpAddress = studentInformation.StudentIPAddress,
+                FullName      = studentInformation.StudentName,
+                Class         = studentInformation.StudentClass
+            };
+
+            return View(viewModel);
+            //// Chưa nhập thông tin thí sinh
+            //if (Session["FullName"] == null || Session["Class"] == null)
+            //{
+            //    return RedirectToAction("JoinTest");
+            //}
+
+            //string studentIpAddress = Request.UserHostAddress;
+            //string studentName      = Session["FullName"].ToString();
+            //string studentClass     = Session["Class"].ToString();
+
+            //var viewModel = new WaitingScreenViewModel {
+            //    UserIpAddress = studentIpAddress,
+            //    FullName      = studentName,
+            //    Class         = studentClass
+            //};
+
+            //return View(viewModel);
         }
 
         public ActionResult DoTest()
         {
-            CurrentStudentTestStep = StudentTestStepEnum.DoingTest;
+            var studentInformation      = (TestResult)Session["StudentInformation"];
+            studentInformation.TestStep = TestData.TestStepEnum.OnWorking;
+
+
+            var viewModel = new WaitingScreenViewModel
+            {
+                UserIpAddress = studentInformation.StudentIPAddress,
+                FullName      = studentInformation.StudentName,
+                Class         = studentInformation.StudentClass
+            };
+
+            Session["StudentInformation"] = studentInformation;
+
+            ViewBag.IpAddress = studentInformation.StudentIPAddress;
+            return View();
+        }
+
+        public ActionResult FinishTest()
+        {
+            string studentIpAddress = Request.UserHostAddress;
+            string studentName = "Nguyễn Trường Giang";
+            string studentClass = "12c1";
+
             return View();
         }
     }

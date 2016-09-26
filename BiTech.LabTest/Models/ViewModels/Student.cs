@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Web;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BiTech.LabTest.Models.ViewModels
 {
@@ -14,6 +10,15 @@ namespace BiTech.LabTest.Models.ViewModels
             public string FullName { get; set; }
 
             [Required(ErrorMessage = "Vui lòng điền lớp học của bạn")]
+            public string Class { get; set; }
+        }
+
+        public class WaitingScreenViewModel
+        {
+            public string UserIpAddress { get; set; }
+
+            public string FullName { get; set; }
+
             public string Class { get; set; }
         }
     }

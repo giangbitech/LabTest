@@ -12,9 +12,10 @@ namespace BiTech.LabTest.DAL.Models
             OnWorking,
             Finish
         }
-
-
-        public ObjectId Id { get; set; }
+        
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
 
         public DateTime RecordDateTime { get; set; }
 

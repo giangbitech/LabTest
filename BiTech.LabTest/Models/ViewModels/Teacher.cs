@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using static BiTech.LabTest.DAL.Models.TestData;
 
 namespace BiTech.LabTest.Models.ViewModels
 {
@@ -67,7 +68,31 @@ namespace BiTech.LabTest.Models.ViewModels
             /// Json-format
             /// </summary>
             public string TestData { get; set; }
-           
+
+            /// <summary>
+            /// Thời gian làm bài
+            /// </summary>
+            public int TotalMinutes { get; set; }
+
+            /// <summary>
+            /// Thời gian còn lại để làm bài thi. Tính bằng giây
+            /// </summary>
+            public int RemainingTestSeconds { get; set; }
+
+            /// <summary>
+            /// Loại bài thi
+            /// </summary>
+            public string Type { get; set; }
+
+            /// <summary>
+            /// Năm học
+            /// </summary>
+            public string Year { get; set; }
+
+            public System.DateTime StartDateTime { get; set; }
+
+            public System.DateTime EndDateTime { get; set; }
+
             public DAL.Models.TestData.TestStepEnum TestStep { get; set; }
 
             public List<QuestionGroupInformation> QuestionGroups { get; set; }
@@ -78,7 +103,34 @@ namespace BiTech.LabTest.Models.ViewModels
                 TestStep = DAL.Models.TestData.TestStepEnum.Waiting;
                 Subject = Grade = TestData = "";
                 QuestionGroups = new List<QuestionGroupInformation>();
+                TotalMinutes = 0;
             }
+        }
+
+        public class OnlineStudentViewModel
+        {
+            public int OrderNumber { get; set; }
+
+            public string IpAddress { get; set; }
+
+            /// <summary>
+            /// Điểm thi
+            /// </summary>
+            public string Mark { get; set; }
+
+            public string FullName { get; set; }
+
+            public string StudentClass { get; set; }
+
+            /// <summary>
+            /// TestStep dạng Enum
+            /// </summary>
+            public TestStepEnum TestStep { get; set; }
+
+            /// <summary>
+            /// Mô tả TestStep bằng ngôn ngữ human-readable
+            /// </summary>
+            public string TestStepDescription { get; set; }
         }
     }
 }

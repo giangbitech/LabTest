@@ -1,15 +1,12 @@
 ﻿using BiTech.LabTest.BLL;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Web;
 using System.Web.Mvc;
 using System.IO.Compression;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using BiTech.LabTest.BLL.Interfaces;
 using BiTech.LabTest.DAL.Models;
 using static BiTech.LabTest.Models.ViewModels.Teacher;
 
@@ -17,7 +14,7 @@ namespace BiTech.LabTest.Controllers
 {
     public class TeacherController : Controller
     {
-        public ITeacherLogic TeacherLogic { get; set; }
+        public TeacherLogic TeacherLogic { get; set; }
 
         public TestInformationViewModel TestDataViewModel { get; set; }
 
@@ -40,9 +37,20 @@ namespace BiTech.LabTest.Controllers
             return RedirectToAction("NewTest");
         }
 
-        #region New test
+        /// <summary>
+        /// Màn hình tổ chức thi. 
+        /// Upload bài thi
+        /// Giám sát thi
+        /// </summary>
+        /// <returns></returns>
         public ActionResult NewTest()
         {
+            // Kiểm tra quyền của người truy cập
+            if (Request.UserHostAddress != Request.ServerVariables["LOCAL_ADDR"])
+            {
+                return RedirectToAction("Index", "Student");
+            }
+
             // Thông tin bài test
             if (Session["TestInfomration"] != null)
             {
@@ -53,20 +61,44 @@ namespace BiTech.LabTest.Controllers
                 TestDataViewModel = new TestInformationViewModel();
             }
 
-            // Kiểm tra quyền của người truy cập
-            if (Request.UserHostAddress != Request.ServerVariables["LOCAL_ADDR"])
+            // Tính thời gian làm bài còn lại nếu đang trong quá trình thi
+            if (TestDataViewModel.TestStep == TestData.TestStepEnum.OnWorking)
             {
-                return RedirectToAction("Index", "Student");
+                // Số giây còn lại để làm bài thi
+                var remainingSeconds                   = TestDataViewModel.EndDateTime.Subtract(DateTime.Now).TotalSeconds;
+                TestDataViewModel.RemainingTestSeconds = int.Parse(Math.Ceiling(remainingSeconds).ToString());
+
+                // Kiểm tra hết giờ làm bài chưa ?
+                if (remainingSeconds <= 0)
+                {
+                    TestDataViewModel.TestStep = TestData.TestStepEnum.Finish;
+                }
             }
 
+
+            Session["TestInfomration"] = TestDataViewModel;
             return View(TestDataViewModel);
         }
 
+        /// <summary>
+        /// Kết thúc bài thi hiện tại.
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult EndTest()
+        {
+            Session["TestInfomration"] = null;
+            return RedirectToAction("NewTest");
+        }
+
+        /// <summary>
+        /// Bắt đầu tính giờ làm bài
+        /// </summary>
+        /// <returns></returns>
         [HttpPost]
         public ActionResult StartTest()
         {
             // Thông tin bài test
-            TestDataViewModel = (Models.ViewModels.Teacher.TestInformationViewModel)Session["TestInfomration"];
+            TestDataViewModel = (TestInformationViewModel)Session["TestInfomration"];
 
 
             if (TestDataViewModel == new TestInformationViewModel())
@@ -80,18 +112,30 @@ namespace BiTech.LabTest.Controllers
                 return RedirectToAction("Index", "Student");
             }
 
+            // Tiến hành thi
             TestDataViewModel.TestId = TeacherLogic.StartTest(TestDataViewModel.TestData);
 
             if (string.IsNullOrEmpty(TestDataViewModel.TestId) == false)
             {
-                TestDataViewModel.TestStep = TestData.TestStepEnum.OnWorking;
+                TestDataViewModel.TestStep      = TestData.TestStepEnum.OnWorking;
+                TestDataViewModel.StartDateTime = DateTime.Now;
+                TestDataViewModel.EndDateTime   = DateTime.Now.AddMinutes(TestDataViewModel.TotalMinutes);
             }
 
             Session["TestInfomration"] = TestDataViewModel;
 
-            return Json(new { success = 1, testId = TestDataViewModel.TestId });
+            return Json(new
+            {
+                success              = 1,
+                testId               = TestDataViewModel.TestId,
+                remainingTestSeconds = TestDataViewModel.RemainingTestSeconds
+            });
         }
 
+        /// <summary>
+        /// Nhận & xữ lý file để thi do giáo viên đưa lên.
+        /// </summary>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult> UploadTestData()
         {
@@ -101,7 +145,7 @@ namespace BiTech.LabTest.Controllers
                 if (file != null && file.ContentLength > 0)
                 {
                     #region Kiểm tra thư mục lưu đề thi
-                    var testDataFolder = Tool.GetConfiguration("TestDataFolder");
+                    var testDataFolder     = Tool.GetConfiguration("TestDataFolder");
                     var testDataServerPath = Server.MapPath(testDataFolder);
 
                     if (Directory.Exists(testDataServerPath) == false)
@@ -111,6 +155,7 @@ namespace BiTech.LabTest.Controllers
                     #endregion
 
                     // Cấu trúc tên file [original_file_name]-[Guid].[file_extension]
+                    //todo: kiểm tra file upload lên quá thì nhiều thì phải làm sao
                     string extension = Path.GetExtension(file.FileName);
                     string filename  = Path.GetFileNameWithoutExtension(file.FileName) + "-" + Guid.NewGuid() + extension;
                     var path         = Path.Combine(testDataServerPath, filename);
@@ -132,7 +177,7 @@ namespace BiTech.LabTest.Controllers
                                     using (var zipEntryStream = sample.Open())
                                     {
                                         StreamReader streamReader = new StreamReader(zipEntryStream);
-                                        testDataInString = await streamReader.ReadToEndAsync();
+                                        testDataInString          = await streamReader.ReadToEndAsync();
                                     }
                                 }
                             }
@@ -142,42 +187,59 @@ namespace BiTech.LabTest.Controllers
 
                     Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
 
-                    var testDataInJson  = JObject.Parse(testDataInString);
-                    var testInformation = new Models.ViewModels.Teacher.TestInformationViewModel
+                    var testDataInJson = JObject.Parse(testDataInString);
+                    TestDataViewModel = new Models.ViewModels.Teacher.TestInformationViewModel
                     {
-                        TestData = testDataInString,
-                        TestStep = TestData.TestStepEnum.Waiting,
-                        Subject  = testDataInJson["Test"]["Header"]["Subject"].ToString(),
-                        Grade    = testDataInJson["Test"]["Header"]["Grade"].ToString()
+                        TestData             = testDataInString,
+                        TestStep             = TestData.TestStepEnum.Waiting,
+                        Subject              = testDataInJson["test"]["header"]["subject"].ToString(),
+                        Grade                = testDataInJson["test"]["header"]["grade"].ToString(),
+                        TotalMinutes         = int.Parse(testDataInJson["test"]["header"]["time"].ToString()),
+                        RemainingTestSeconds = int.Parse(testDataInJson["test"]["header"]["time"].ToString()) * 60,
+                        Type                 = testDataInJson["test"]["header"]["type"].ToString(),
+                        Year                 = testDataInJson["test"]["header"]["year"].ToString(),
+                        QuestionGroups       = new List<QuestionGroupInformation>()
                     };
 
                     // Lấy danh sách các nhóm câu hỏi
-                    var groups = (JObject) testDataInJson["Test"]["Groups"];
+                    var groups = (JArray)testDataInJson["test"]["groups"];
 
                     foreach (var item in groups)
                     {
-                        var currentItem = JObject.Parse(item.Value.ToString());
+
+                        //todo: Kiểm tra số lượng câu hỏi parse ra đúng chưa 
+                        var currentItem = JObject.Parse(item.ToString());
+
+                        var totalQuizQuestionInGroup      = System.Text.RegularExpressions.Regex.Matches(currentItem["quiz"]?["qGroup"].ToString(), "sID").Count;
+                        var totalUnderlineQuestionInGroup = System.Text.RegularExpressions.Regex.Matches(currentItem["underline"]?["qGroup"].ToString(), "sID").Count;
+                        var totalFillQuestionInGroup      = System.Text.RegularExpressions.Regex.Matches(currentItem["fill"]?["qGroup"].ToString(), "sID").Count;
+                        var totalTrueFalseQuestionInGroup = System.Text.RegularExpressions.Regex.Matches(currentItem["trueFalse"]?["qGroup"].ToString(), "sID").Count;
+                        var totalMatchingQuestionInGroup  = System.Text.RegularExpressions.Regex.Matches(currentItem["matching"]?["qGroup"].ToString(), "sID").Count;
 
                         var questionGroup = new QuestionGroupInformation
                         {
-                            Title          = currentItem["GroupInfo"]["Title"].ToString(),
-                            TotalQuiz      = (currentItem["Quiz"]?["Quiz_Q_Single"]?["Quiz_S_Question"]?.Count() ?? 0) + (currentItem["Quiz"]?["Quiz_Q_Group"]?["Quiz_QG_Question"]?.Count() ?? 0),
-                            TotalUnderline = (currentItem["Underline"]?["Underline_Q_Single"]?["Underline_S_Question"]?.Count() ?? 0) + (currentItem["Underline"]?["Underline_Q_Group"]?["Underline_QG_Question"]?.Count() ?? 0),
-                            TotalFill      = (currentItem["Fill"]?["Fill_Q_Single"]?["Fill_S_Question"]?.Count() ?? 0) + (currentItem["Fill"]?["Fill_Q_Group"]?["Fill_QG_Question"]?.Count() ?? 0),
-                            TotalTrueFalse = (currentItem["TrueFalse"]?["TrueFalse_Q_Single"]?["TrueFalse_S_Question"]?.Count() ?? 0) + (currentItem["TrueFalse"]?["TrueFalse_Q_Group"]?["TrueFalse_QG_Question"]?.Count() ?? 0),
-                            TotalMatching  = (currentItem["Matching"]?["Matching_Q_Single"]?["Matching_S_Question"]?.Count() ?? 0) + (currentItem["Matching"]?["Matching_Q_Group"]?["Matching_QG_Question"]?.Count() ?? 0)
+                            Title          = currentItem["groupInfo"]["title"].ToString(),
+                            TotalQuiz      = (currentItem["quiz"]?["qSingle"]?.Count() ?? 0) + totalQuizQuestionInGroup,
+                            TotalUnderline = (currentItem["underline"]?["qSingle"]?.Count() ?? 0) + totalUnderlineQuestionInGroup,
+                            TotalFill      = (currentItem["fill"]?["qSingle"]?.Count() ?? 0) + totalFillQuestionInGroup,
+                            TotalTrueFalse = (currentItem["trueFalse"]?["qSingle"]?.Count() ?? 0) + totalTrueFalseQuestionInGroup,
+                            TotalMatching  = (currentItem["matching"]?["qSingle"]?.Count() ?? 0) + totalMatchingQuestionInGroup
                         };
 
-                        testInformation.QuestionGroups.Add(questionGroup);
+                        TestDataViewModel.QuestionGroups.Add(questionGroup);
                     }
 
-                    Session["TestInfomration"] = testInformation;
+                    Session["TestInfomration"] = TestDataViewModel;
 
                     return Json(new
                     {
-                        status  = "OK",
-                        subject = testDataInJson["Test"]["Header"]["Subject"].ToString(),
-                        grade   = testDataInJson["Test"]["Header"]["Grade"].ToString(),
+                        status               = "OK",
+                        subject              = TestDataViewModel.Subject,
+                        grade                = TestDataViewModel.Grade,
+                        totalMinutes         = TestDataViewModel.TotalMinutes,
+                        remainingTestSeconds = TestDataViewModel.RemainingTestSeconds,
+                        type                 = TestDataViewModel.Type,
+                        year                 = TestDataViewModel.Year
                     }, "text/plain");
                 }
             }
@@ -185,8 +247,21 @@ namespace BiTech.LabTest.Controllers
             Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
             return Json(new { status = "NO_OK" }, "text/plain");
         }
-        #endregion
 
+        /// <summary>
+        /// Lấy thông tin bài thi sau khi đã upload lên
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult GetUploadedTestInformation()
+        {
+            var testInformation = (TestInformationViewModel)Session["TestInfomration"];
+            return View("_TestDataGroupStatistic", testInformation.QuestionGroups);
+        }
+
+        /// <summary>
+        /// Danh sách các Bài test đã được tổ chức thi.
+        /// </summary>
+        /// <returns></returns>
         public ActionResult TestHistories()
         {
             if (Request.UserHostAddress != Request.ServerVariables["LOCAL_ADDR"])
@@ -195,6 +270,16 @@ namespace BiTech.LabTest.Controllers
             }
 
             return View();
+        }
+
+        /// <summary>
+        /// Cho client request lên để giữ Session, ko cần xữ lý gì thêm
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult KeepSession()
+        {
+            return Json(new { success = true });
         }
     }
 }

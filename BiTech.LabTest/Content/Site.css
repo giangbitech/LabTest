@@ -61,19 +61,30 @@ textarea {
 .body-content {
     margin-top: 20px;
 }
+
+
 /*#endregion */
 
 /*#region New LabTest */
-.new-test-container {
+.main-test-title-container {
+    display: none;
 }
+
+    .main-test-title-container.active {
+        display: block;
+    }
+
+.new-test-container {
+    display: none;
+}
+
+    .new-test-container.active {
+        display: block;
+    }
 
 
     .new-test-container .get-data-caption {
         font-size: 26px;
-    }
-
-    .new-test-container .choose-source-container.test-on-process {
-        display: none;
     }
 
     .new-test-container .choose-source-container {
@@ -126,6 +137,12 @@ textarea {
         .new-test-information-container .test-tracking-timer.active {
             display: block;
         }
+
+    .new-test-information-container .doing-test-time {
+        text-align: center;
+        padding-bottom: 5px;
+        font-weight: bold;
+    }
 
 .start-button-wrapper {
     display: none;
@@ -181,6 +198,25 @@ textarea {
             overflow: hidden;
         }
 
+    .waiting-wrapper .test-time-tracker {
+        display: none;
+    }
+
+        .waiting-wrapper .test-time-tracker.active {
+            display: block;
+        }
+
+        .waiting-wrapper .test-time-tracker .test-time-out {
+            text-align: center;
+            padding: 10px;
+            font-size: 200%;
+            display: none;
+        }
+
+            .waiting-wrapper .test-time-tracker .test-time-out.active {
+                display: block;
+            }
+
 em {
     display: inline-block;
     height: .8em;
@@ -189,6 +225,36 @@ em {
 
 .lab-tracking {
     display: none;
+}
+
+.end-test-container {
+    display: none;
+}
+
+    .end-test-container.active {
+        display: block;
+    }
+
+.btn-save-print-test {
+    display: none;
+}
+
+    .btn-save-print-test.active {
+        display: block;
+    }
+
+
+.general-mark-table {
+    display: none;
+}
+
+    .general-mark-table.active {
+        display: table;
+    }
+
+table .label-column {
+    width: 1%;
+    white-space: nowrap;
 }
 /*#endregion */
 
@@ -446,6 +512,18 @@ em {
 }
 
 @-webkit-keyframes glyphicon-spin-l {
+    0% {
+        -webkit-transform: rotate(359deg);
+        transform: rotate(359deg);
+    }
+
+    100% {
+        -webkit-transform: rotate(0deg);
+        transform: rotate(0deg);
+    }
+}
+
+@-moz-keyframes glyphicon-spin-l {
     0% {
         -webkit-transform: rotate(359deg);
         transform: rotate(359deg);

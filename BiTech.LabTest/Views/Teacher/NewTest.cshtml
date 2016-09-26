@@ -1,8 +1,39 @@
 ﻿@model BiTech.LabTest.Models.ViewModels.Teacher.TestInformationViewModel
+@{
+    var testTitle = "";
 
+    // Tên môn thi
+    if (Model.Subject.Length > 0)
+    {
+        testTitle = Model.Subject;
+    }
+
+    // khối lớp
+    if (Model.Grade.Length > 0)
+    {
+        testTitle = testTitle + " - " + Model.Grade;
+    }
+
+    // Bổ sung loại hình thi, Thi HK, thi 1 tiết .v.v.v
+    if (string.IsNullOrEmpty(Model.Type) == false)
+    {
+        testTitle = Model.Type + " " + testTitle;
+    }
+
+    // Bổ sung năm học thi
+    if (string.IsNullOrEmpty(Model.Year) == false)
+    {
+        testTitle = testTitle + " (" + Model.Year + ")";
+    }
+
+}
+@Html.HiddenFor(m => m.TestId);
+<div id="main-test-title-container" class="main-test-title-container @((Model.TestStep != BiTech.LabTest.DAL.Models.TestData.TestStepEnum.Waiting) ? "active" : "")">
+    <center><h2 id="main-test-title">@testTitle</h2></center>
+</div>
 <div class="container body-content">
-    <div class="new-test-container">
-        <div id="choose-source-container" class="choose-source-container @((Model.TestStep == BiTech.LabTest.DAL.Models.TestData.TestStepEnum.OnWorking) ? "test-on-process" : "")">
+    <div class="new-test-container @((Model.TestStep == BiTech.LabTest.DAL.Models.TestData.TestStepEnum.Waiting) ? "active" : "")">
+        <div id="choose-source-container" class="choose-source-container">
             <div class="get-data-caption"><center><h2>@LanguageConfig.Dictionary["Teacher_Where_To_Get_Test"]</h2></center></div>
             <div class="row">
                 <div class="col-md-6 col-md-offset-3 choose-source-body">
@@ -40,56 +71,16 @@
             <div class="row">
                 <div class="col-md-6 col-md-offset-3 choose-source-container">
                     <div class="brower-filedata-container">
-                        @{
-                            var testTitle = "";
-
-                            if (Model.Subject.Length > 0 && Model.Grade.Length > 0)
-                            {
-                                testTitle = Model.Subject + " - " + Model.Grade;
-                            }
-                        }
                         <center><h4 id="test-title">@testTitle</h4></center>
-
-                        @foreach (var item in Model.QuestionGroups)
-                        {
-                            <div>
-                                <center>
-                                    <table class="table table-striped table-bordered">
-                                        <tr>
-                                            <td colspan="2">@item.Title</td>
-                                        </tr>
-                                        <tr>
-                                            <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Quiz"]</td>
-                                            <td>@item.TotalQuiz</td>
-                                        </tr>
-                                        <tr>
-                                            <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Underline"]</td>
-                                            <td>@item.TotalUnderline</td>
-                                        </tr>
-                                        <tr>
-                                            <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Fill"]</td>
-                                            <td>@item.TotalFill</td>
-                                        </tr>
-                                        <tr>
-                                            <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_TrueFalse"]</td>
-                                            <td>@item.TotalTrueFalse</td>
-                                        </tr>
-                                        <tr>
-                                            <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Matching"]</td>
-                                            <td>@item.TotalMatching</td>
-                                        </tr>
-                                        <tr>
-                                            <td><b>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Total"]</b></td>
-                                            <td><b>@item.TotalAllQuestion</b></td>
-                                        </tr>
-                                    </table>
-                                </center>
-                            </div>
-                        }
-                      
+                        <div id="doing-test-time" class="doing-test-time">@Html.Raw(String.Format(@LanguageConfig.Dictionary["Teacher_Test_Total_Minutes"], Model.TotalMinutes))</div>
+                        <div id="test-data-group-statistics">
+                            @Html.Partial("_TestDataGroupStatistic", Model.QuestionGroups)
+                        </div>
                         <div>
                             <div id="start-test-container" class="start-test-container @((Model.TestStep == BiTech.LabTest.DAL.Models.TestData.TestStepEnum.Waiting) ? "active" : "")">
+                                <div id="doing-test-time" class="doing-test-time">@Html.Raw(String.Format(@LanguageConfig.Dictionary["Teacher_Test_Total_Minutes"], Model.TotalMinutes))</div>
                                 <center>
+                                    <div id="StartTestMessageBox" class="alert-danger panel-danger uploader-message-box"></div>
                                     <a id="StartTestButton" class="btn btn-danger btn-lg btn-browse-filedata has-spinner start-test-button"
                                        href="~/Teacher/StartTest"
                                        data-ajax="true"
@@ -102,9 +93,6 @@
                                     </a>
                                 </center>
                             </div>
-                            <div id="test-tracking-timer" class="test-tracking-timer @((Model.TestStep == BiTech.LabTest.DAL.Models.TestData.TestStepEnum.OnWorking) ? "active" : "")">
-                                dhasljdhasld
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -112,305 +100,225 @@
         </div>
     </div>
 </div>
-<div class="waiting-wrapper color-wrapper">
-    <div class="total-waiting-label">
-        <center>@LanguageConfig.Dictionary["Teacher_Test_Data_Total_Student_Received"]</center>
-    </div>
-    <div class="total-waiting-student-wrapper">
-        <center id="TotalJoinedStudents">7</center>
-    </div>
+<div  ng-controller="StudentTrackingController">
+    <div class="waiting-wrapper color-wrapper">
+        <div class="container">
+            <div class="row">
+                <div id="student-number-tracker" class="col-md-6 @((Model.TestStep == BiTech.LabTest.DAL.Models.TestData.TestStepEnum.Waiting) ? "col-md-offset-3" : "")">
+                    <div class="total-waiting-label">
+                        <center>@LanguageConfig.Dictionary["Teacher_Test_Data_Total_Student_Received"]</center>
+                    </div>
+                    <div class="total-waiting-student-wrapper">
+                        <center id="TotalJoinedStudents">{{statistics.totalOnlineStudent}}</center>
+                    </div>
+                    <div id="student-tracker-container">
+                        <div>
+                           <center>
+                               <em style="background-color: #ed561b; "></em> @LanguageConfig.Dictionary["Teacher_Waiting_Test_Number"] &nbsp;&nbsp;&nbsp;
 
-    <div class="row">
-        <div class="col-md-6 col-md-offset-3">
-            <div>
-                <em style="background-color: #ed561b; "></em> Đang chờ thi
+                               <em style="background-color: #4285f4; "></em> @LanguageConfig.Dictionary["Teacher_Doing_Test_Number"] &nbsp;&nbsp;&nbsp;
+
+                               <em style="background-color: #50b432; "></em> @LanguageConfig.Dictionary["Teacher_Finished_Test_Number"] &nbsp;&nbsp;&nbsp;
+                           </center>
+                        </div>
+                        <table class="realtime-statistics-table">
+                            <tr>
+                                <td id="Waiting" class="waiting" style="width: {{statistics.totalWaitingStudentPercent}}%">{{statistics.totalWaitingStudent}} @LanguageConfig.Dictionary["Teacher_Statistic_People_Label"]</td>
+                                <td id="Working" class="working" style="width: {{statistics.totalDoingTestStudentPercent}}%">{{statistics.totalDoingTestStudent}} @LanguageConfig.Dictionary["Teacher_Statistic_People_Label"]</td>
+                                <td id="Finish" class="finish" style="width: {{statistics.totalFinishedStudentPercent}}%">{{statistics.totalFinishedStudent}} @LanguageConfig.Dictionary["Teacher_Statistic_People_Label"]</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div id="test-time-tracker" class="col-md-6 test-time-tracker  @((Model.TestStep != BiTech.LabTest.DAL.Models.TestData.TestStepEnum.Waiting) ? "active" : "")">
+                    <div class="total-waiting-label">
+                        <center>@LanguageConfig.Dictionary["Teacher_Remaining_Time"]</center>
+                    </div>
+                    <div id="remaining-timer" class="total-waiting-student-wrapper">
+                        <center id="RemainingTimer"></center>
+                        <input type="hidden" id="RemainingTestSeconds" value="" />
+                    </div>
+                    <div id="test-time-out" class="alert-danger test-time-out @((Model.TestStep == BiTech.LabTest.DAL.Models.TestData.TestStepEnum.Finish) ? "active" : "")">@Html.Raw(LanguageConfig.Dictionary["Teacher_Test_Timeout"])</div>
+                </div>
             </div>
-            <div>
-                <em style="background-color: #4285f4; "></em> Đang thi
-            </div>
-            <div>
-                <em style="background-color: #50b432; "></em> Đã thi xong
-            </div>
-            <table class="realtime-statistics-table">
-                <tr>
-                    <td id="Waiting" class="waiting" style="width: 20%">20 người</td>
-                    <td id="Working" class="working" style="width: 60%">50 người</td>
-                    <td id="Finish" class="finish" style="width: 30%">30 người</td>
-                </tr>
-            </table>
         </div>
     </div>
-</div>
-
-@{
-    List<dynamic> studentList = new List<dynamic>();
-
-    #region Mockup data
-    studentList.Add(new
-    {
-        Name = "Nguyễn Trường Giang",
-        Result = 0,
-        Status = "Chờ thi"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Nhanh",
-        Result = 0,
-        Status = "Đang thi. Còn 15 phút 40 giây"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Sáu",
-        Result = "5.6",
-        Status = "Đã hoàn thành bài thi"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Sáu",
-        Result = "8.6",
-        Status = "Đã hoàn thành bài thi. Còn dư 5 phút"
-    });
-    studentList.Add(new
-    {
-        Name = "Nguyễn Trường Giang",
-        Result = 0,
-        Status = "Chờ thi"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Nhanh",
-        Result = 0,
-        Status = "Đang thi. Còn 15 phút 40 giây"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Sáu",
-        Result = "5.6",
-        Status = "Đã hoàn thành bài thi"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Sáu",
-        Result = "8.6",
-        Status = "Đã hoàn thành bài thi. Còn dư 5 phút"
-    });
-    studentList.Add(new
-    {
-        Name = "Nguyễn Trường Giang",
-        Result = 0,
-        Status = "Chờ thi"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Nhanh",
-        Result = 0,
-        Status = "Đang thi. Còn 15 phút 40 giây"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Sáu",
-        Result = "5.6",
-        Status = "Đã hoàn thành bài thi"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Sáu",
-        Result = "8.6",
-        Status = "Đã hoàn thành bài thi. Còn dư 5 phút"
-    });
-    studentList.Add(new
-    {
-        Name = "Nguyễn Trường Giang",
-        Result = 0,
-        Status = "Chờ thi"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Nhanh",
-        Result = 0,
-        Status = "Đang thi. Còn 15 phút 40 giây"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Sáu",
-        Result = "5.6",
-        Status = "Đã hoàn thành bài thi"
-    });
-
-    studentList.Add(new
-    {
-        Name = "Cháu chú Sáu",
-        Result = "8.6",
-        Status = "Đã hoàn thành bài thi. Còn dư 5 phút"
-    });
-    #endregion
-}
-
-<div class="container body-content">
-    <div>
-        <table id="StudentList" class="table table-bordered table-striped">
-            <caption><h2>Danh sách thí sinh</h2></caption>
+    <div class="container body-content">
+        <table id="StudentList" class="table table-bordered table-striped table-hover">
+            <caption><h2>@LanguageConfig.Dictionary["Teacher_Student_List"]</h2></caption>
             <thead>
                 <tr>
                     <th width="30px">
                         <center>
-                            STT
+                            @LanguageConfig.Dictionary["Teacher_Order_Number"]
                         </center>
                     </th>
                     <th>
-                        Họ Tên
+                        @LanguageConfig.Dictionary["Teacher_FullName"]
                     </th>
                     <th>
-                        <center>Điểm số</center>
+                        <center>@LanguageConfig.Dictionary["Teacher_Mark"]</center>
                     </th>
                     <th>
-                        Trạng thái
+                        @LanguageConfig.Dictionary["Teacher_Status"]
                     </th>
                 </tr>
             </thead>
             <tbody>
-
-                @{
-                    var orderNumber = 1;
-                    foreach (var item in studentList)
-                    {
-                        <tr>
-                            <td>
-                                <center>@orderNumber</center>
-                            </td>
-                            <td>
-                                @item.Name
-                            </td>
-                            <td>
-                                <center>@item.Result</center>
-                            </td>
-                            <td>
-                                @item.Status
-                            </td>
-                        </tr>
-                        orderNumber += 1;
-                    }
-                }
+                <tr ng-repeat="student in students">
+                    <td>
+                        <center>{{student.OrderNumber}}</center>
+                    </td>
+                    <td>
+                        {{student.FullName}}
+                    </td>
+                    <td>
+                        <center>{{student.Mark}}</center>
+                    </td>
+                    <td>
+                        {{student.TestStepDescription}}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <table class="table table-bordered table-striped general-mark-table  @((Model.TestStep != BiTech.LabTest.DAL.Models.TestData.TestStepEnum.Waiting) ? "active" : "")">
+            <caption><h2>@LanguageConfig.Dictionary["Teacher_General_Table"]</h2></caption>
+            <thead>
+                <tr>
+                    <th class="label-column">@LanguageConfig.Dictionary["Teacher_Scrore_Label_Statistics"]</th>
+                    <th><center>0</center></th>
+                    <th><center>1</center></th>
+                    <th><center>2</center></th>
+                    <th><center>3</center></th>
+                    <th><center>4</center></th>
+                    <th><center>5</center></th>
+                    <th><center>6</center></th>
+                    <th><center>7</center></th>
+                    <th><center>8</center></th>
+                    <th><center>9</center></th>
+                    <th><center>10</center></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th class="label-column">@LanguageConfig.Dictionary["Teacher_Scrore_Total_Student_Label_Statistics"]</th>
+                    <td><center>{{statistics.totalScore0}}</center></td>
+                    <td><center>{{statistics.totalScore1}}</center></td>
+                    <td><center>{{statistics.totalScore2}}</center></td>
+                    <td><center>{{statistics.totalScore3}}</center></td>
+                    <td><center>{{statistics.totalScore4}}</center></td>
+                    <td><center>{{statistics.totalScore5}}</center></td>
+                    <td><center>{{statistics.totalScore6}}</center></td>
+                    <td><center>{{statistics.totalScore7}}</center></td>
+                    <td><center>{{statistics.totalScore8}}</center></td>
+                    <td><center>{{statistics.totalScore9}}</center></td>
+                    <td><center>{{statistics.totalScore10}}</center></td>
+                </tr>
+                <tr>
+                    <th class="label-column">@LanguageConfig.Dictionary["Teacher_Scrore_Total_Student_Percent_Label_Statistics"]</th>
+                    <td colspan="5"><center>{{statistics.totalGroupScore1Percent}}</center></td>
+                    <td colspan="3"><center>{{statistics.totalGroupScore2Percent}}</center></td>
+                    <td colspan="3"><center>{{statistics.totalGroupScore3Percent}}</center></td>
+                </tr>
             </tbody>
         </table>
     </div>
-    <table class="table table-bordered table-striped">
-        <caption><h2>Bảng Phổ Điểm</h2></caption>
-        <tr>
-            <td><center>1</center></td>
-            <td><center>2</center></td>
-            <td><center>3</center></td>
-            <td><center>4</center></td>
-            <td><center>5</center></td>
-            <td><center>6</center></td>
-            <td><center>7</center></td>
-            <td><center>8</center></td>
-            <td><center>9</center></td>
-            <td><center>10</center></td>
-        </tr>
-        <tr>
-            <td><center>0%</center></td>
-            <td><center>0%</center></td>
-            <td><center>0%</center></td>
-            <td><center>0%</center></td>
-            <td><center>0%</center></td>
-            <td><center>0%</center></td>
-            <td><center>0%</center></td>
-            <td><center>0%</center></td>
-            <td><center>0%</center></td>
-            <td><center>1%</center></td>
-        </tr>
-        <tr>
-            <td colspan="4"><center>1 - 4.9</center></td>
-            <td colspan="3"><center>5-7.9</center></td>
-            <td colspan="3"><center>8-10</center></td>
-        </tr>
-    </table>
 </div>
 
-<div class="color-wrapper">
+<div class="color-wrapper end-test-container @((Model.TestStep != BiTech.LabTest.DAL.Models.TestData.TestStepEnum.Waiting) ? "active" : "")">
     <center>
-        <input type="button" name="name" class="btn btn-danger btn-lg" value="Kết thúc bài thi" />
-        <input type="button" name="name" class="btn btn-primary btn-lg" value="Tải kết quả thi" />
+        <a class="btn btn-danger btn-lg" onclick="confirm('@LanguageConfig.Dictionary["Teacher_End_Test_Confirm"]') return true;else return false;" href="@Url.Content("~/Teacher/EndTest")">@LanguageConfig.Dictionary["Teacher_End_Test_Button"]</a>
+        <a class="btn btn-danger btn-lg btn-save-print-test">@LanguageConfig.Dictionary["Teacher_Print_Test"]</a>
     </center>
 </div>
 
+<a href="@Url.Content("~/Teacher/KeepSession")" data-ajax="true" data-ajax-method="post" id="keep-session-anchor"></a>
+
 @section scripts{
-    <script src="~/bower_components/Simple-Ajax-Uploader-master/SimpleAjaxUploader.min.js"></script>
+<script src="~/bower_components/Simple-Ajax-Uploader-master/SimpleAjaxUploader.min.js"></script>
+<script src="~/bower_components/angular/angular.min.js"></script>
+<script src="~/Scripts/Teacher.js"></script>
     <script>
+        studentTrackingData = [];
+        testInformation = null;
 
         // Declare a proxy to reference the hub.
         var chat = $.connection.testHub;
-        // Create a function that the hub can call to broadcast messages.
-        chat.client.broadcastMessage = function (name, message) {
-
-        };
 
         // Start the connection.
-        $.connection.hub.start().done(function () { });
+        $.connection.hub.start();
 
         function startTestBegin() {
             $(this).addClass('active');
         };
 
         function startTestSuccess(response) {
-            // Ẩn khung chọn bài thi
-            $("#choose-source-container").hide();
-            // Hiện khung đồng hồ đếm giờ thi
-            $("#test-tracking-timer").show();
-            // Ẩn nút tình giờ thi
-            $("#start-test-container").hide();
+            if (response.success == "1") {
+                $("#TestId").val(response.testId);
 
+                // Hiện khung tên đề thi
+                $("#main-test-title-container").show();
 
-            $(this).removeClass('active');
+                // Ẩn khung chọn đề & thông tin đề
+                $(".new-test-container").hide();
 
-            var resultInJson = JSON.parse(response);
+                // Hiện khung đồng hồ đếm giờ thi
+                $("#test-tracking-timer").show();
 
-            if (response.success = "1") {
-                alert(resultInJson.testId)
+                // Ẩn nút tình giờ thi
+                $("#start-test-container").hide();
+
+                // Dịch chuyển khung theo dõi só lượng
+                $("#student-number-tracker").removeClass("col-md-offset-3");
+
+                // Hiển thị khung đếm giờ
+                $("#test-time-tracker").show();
+
+                // Hiện thị khung thống kê điểm
+                $(".general-mark-table").addClass('active');
+
+                // Hiện thị khung kết thúc bài thi & in kêt quả
+                $(".end-test-container").addClass('active');
+
+                $(this).removeClass('active');
+
+                countdown(response.remainingTestSeconds, document.getElementById("RemainingTimer"));
+
+                // Request notify các clients bắt đầu thi
+                chat.server.teacherAnnounceTestOpened(response.testId);
             }
             else {
-                alert("lỗi")
+                document.getElementById("StartTestMessageBox").innerHTML = '<div class="inner-container">@Html.Raw(@LanguageConfig.Dictionary["Teacher_Start_Test_Error"])</div>';
+                $(this).removeClass('active');
             }
-
-            chat.server.teacherAnnounceTestOpened(resultInJson.testId);
         };
 
         $(document).ready(function () {
-            $('#StudentList').DataTable({
-                "paging": false,
-                "language": {
-                    "sProcessing": "Đang xử lý...",
-                    "sLengthMenu": "Xem _MENU_ mục",
-                    "sZeroRecords": "Không tìm thấy dòng nào phù hợp",
-                    "sInfo": "Đang xem _START_ đến _END_ trong tổng số _TOTAL_ mục",
-                    "sInfoEmpty": "Đang xem 0 đến 0 trong tổng số 0 mục",
-                    "sInfoFiltered": "(được lọc từ _MAX_ mục)",
-                    "sInfoPostFix": "",
-                    "sSearch": "Tìm:",
-                    "sUrl": "",
-                    "oPaginate": {
-                        "sFirst": "Đầu",
-                        "sPrevious": "Trước",
-                        "sNext": "Tiếp",
-                        "sLast": "Cuối"
-                    }
-                }
-            });
+            // Để giữ session, tạo kết nối mới đến MVC sau n phút....
+            var keepSession = setInterval(function () {
+                $("#keep-session-anchor").click();
+            },1000*60);
 
-
-
+            //$('#StudentList').DataTable({
+            //    "paging": false,
+            //    "language": {
+            //        "sProcessing": "Đang xử lý...",
+            //        "sLengthMenu": "Xem _MENU_ mục",
+            //        "sZeroRecords": "Không tìm thấy dòng nào phù hợp",
+            //        "sInfo": "Đang xem _START_ đến _END_ trong tổng số _TOTAL_ mục",
+            //        "sInfoEmpty": "Đang xem 0 đến 0 trong tổng số 0 mục",
+            //        "sInfoFiltered": "(được lọc từ _MAX_ mục)",
+            //        "sInfoPostFix": "",
+            //        "sSearch": "Tìm:",
+            //        "sUrl": "",
+            //        "oPaginate": {
+            //            "sFirst": "Đầu",
+            //            "sPrevious": "Trước",
+            //            "sNext": "Tiếp",
+            //            "sLast": "Cuối"
+            //        }
+            //    }
+            //});
         });
 
         function escapeTags(str) {
@@ -418,7 +326,7 @@
                      .replace(/&/g, '&amp;')
                      .replace(/"/g, '&quot;')
                      .replace(/'/g, '&#39;')
-                     .replace(/</g, '&lt;')
+                 .replace(/</g, '&lt;')
                      .replace(/>/g, '&gt;');
         }
 
@@ -441,6 +349,7 @@
                     this.setProgressBar(progressBar);
                 },
                 onSubmit: function () {
+                    $("#new-test-information-container").hide();
                     msgBox.innerHTML = ''; // empty the message box
                     btn.innerHTML = '@LanguageConfig.Dictionary["Teacher_Test_Uploading"]'; // change button text to "Uploading..."
                 },
@@ -455,7 +364,42 @@
                     }
 
                     if (response.status == "OK") {
-                        $("#test-title").html(response.subject + " - " + response.grade);
+                        testInformation = response;
+
+                        var testTitle = "";
+
+                        // Tên môn thi và khối lớp
+                        if (response.subject.length > 0) {
+                            testTitle = response.subject + " - ";
+                        }
+
+                        if (response.grade.length > 0) {
+                            testTitle = testTitle + response.grade;
+                        }
+
+                        // Bổ sung loại hình thi, Thi HK, thi 1 tiết .v.v.v
+                        if (response.type.length > 0) {
+                            testTitle = response.type + " " + testTitle;
+                        }
+
+                        // Bổ sung năm học thi
+                        if (response.year.length > 0) {
+                            testTitle = testTitle + " (" + response.year + ")";
+                        }
+                        // Hiện thị môn thi và khối lớp thi
+                        $("#test-title").html(testTitle);
+
+                        $("#main-test-title").html(testTitle);
+
+                        // Thời gian thi
+                        $(".total-test-time-value").each(function () {
+                            $(this).html(response.totalMinutes);
+                        });
+
+                        // Lấy thông in số lượng câu hỏi theo từng nhóm đề
+                        $.get("@Url.Content("~/Teacher/GetUploadedTestInformation")", null, function (data) {
+                            $("#test-data-group-statistics").html(data);
+                        });
 
                         // Hiện khung thông tin bài thi đã chọn
                         var informationContainer = $("#new-test-information-container");
@@ -474,9 +418,43 @@
                     btn.innerHTML = '@LanguageConfig.Dictionary["Teacher_Get_Test_From_Device"]';
                 }
             });
-
-
-
         };
+
+        function countdown(seconds, element) {
+            $("#RemainingTestSeconds").val(seconds);
+
+            var interval = setInterval(function (element) {
+                seconds = $("#RemainingTestSeconds").val();
+
+                d = Number(seconds);
+                var h = Math.floor(d / 3600);
+                var m = Math.floor(d % 3600 / 60);
+                var s = Math.floor(d % 3600 % 60);
+                seconds -= 1;
+
+
+                // Cập nhật số giây hiện có
+                $("#RemainingTestSeconds").val(seconds);
+
+                $(element).html( m + ':' + ((s < 10) ? "0" + s : s));
+
+                // Hết giờ làm bài
+                if (seconds == 0) {
+                    // Phát âm thanh
+                    $('<audio controls autoplay> <source src="@Url.Content("~/Content/bell.mp3")" type="audio/mpeg"> Your browser does not support the audio element. </audio>');
+                    clearInterval(interval);
+
+                    // Hiện khung thông báo hết giờ làm bài
+                    $("#test-time-out").show();
+                    // Ẩn đồng hồ đếm giờ
+                    $("#remaining-timer").hide();
+                }
+            }, 1000, element);
+        }
+
+        @if (Model.RemainingTestSeconds > 0  && Model.TestStep == BiTech.LabTest.DAL.Models.TestData.TestStepEnum.OnWorking)
+        {
+            @:countdown(@Model.RemainingTestSeconds, document.getElementById("RemainingTimer"));
+                                                        }
     </script>
 }

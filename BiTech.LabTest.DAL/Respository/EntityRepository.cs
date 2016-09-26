@@ -16,15 +16,17 @@ namespace BiTech.LabTest.DAL.Respository
 
         public IMongoDatabase Database { get; set; }
 
+
         public EntityRepository(IDatabase database, string tableName)
         {
             Database = (IMongoDatabase)database.GetConnection();
             DatabaseCollection = Database.GetCollection<T>(tableName);
         }
 
+
         public T GetById(string id)
         {
-            return DatabaseCollection.Find(m => m.Id == new ObjectId(id)).FirstOrDefault(); ;
+            return DatabaseCollection.Find(m => m.Id == id).FirstOrDefault();
         }
 
         public string Insert(T entity)

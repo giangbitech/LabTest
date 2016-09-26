@@ -1,0 +1,40 @@
+﻿@{
+    Layout = null;
+}
+@model  List<BiTech.LabTest.Models.ViewModels.Teacher.QuestionGroupInformation>
+@foreach (var item in Model)
+{
+    <div>
+        <center>
+            <table class="table table-striped table-bordered">
+                <tr>
+                    <td colspan="2"><center><b>@item.Title</b></center></td>
+                </tr>
+                <tr>
+                    <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Quiz"]</td>
+                    <td>@item.TotalQuiz</td>
+                </tr>
+                <tr>
+                    <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Underline"]</td>
+                    <td>@item.TotalUnderline</td>
+                </tr>
+                <tr>
+                    <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Fill"]</td>
+                    <td>@item.TotalFill</td>
+                </tr>
+                <tr>
+                    <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_TrueFalse"]</td>
+                    <td>@item.TotalTrueFalse</td>
+                </tr>
+                <tr>
+                    <td>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Matching"]</td>
+                    <td>@item.TotalMatching</td>
+                </tr>
+                <tr>
+                    <td><b>@LanguageConfig.Dictionary["Teacher_Test_Data_Information_Total"]</b></td>
+                    <td><b>@item.TotalAllQuestion</b></td>
+                </tr>
+            </table>
+        </center>
+    </div>
+}

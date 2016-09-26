@@ -7,7 +7,8 @@ namespace BiTech.LabTest.DAL.Models
     public interface IModel
     {
         [BsonId]
-        ObjectId Id { get; set; }
+        [BsonRepresentation(BsonType.ObjectId)]
+        string Id { get; set; }
 
         // Thời gian được khi vào database
         DateTime RecordDateTime { get; set; }
